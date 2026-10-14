@@ -1,7 +1,16 @@
 # ── Grafana Helm Values for BookEase ───────────────────────────────────────────
 
+# ── Admin Credentials ──────────────────────────────────────────────────────────
+# For production, pass via helm: --set adminPassword="$GRAFANA_ADMIN_PASSWORD"
+# or create a Kubernetes Secret and reference it under admin.existingSecret
+admin:
+  existingSecret: ""
+  userKey: admin-user
+  passwordKey: admin-password
+
 adminUser: admin
-adminPassword: adminpassword
+# Default password for local Minikube testing; override via --set adminPassword=... in production
+adminPassword: ${GRAFANA_ADMIN_PASSWORD:-adminpassword}
 
 service:
   type: NodePort

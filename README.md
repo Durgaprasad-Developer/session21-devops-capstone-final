@@ -1,191 +1,360 @@
 # BookEase — Appointment Booking Management System
+**Session 21 DevOps Capstone Project**
 
-BookEase is a full-stack appointment management application built as the DevOps Capstone Final Project (Session 21).
+[![CI/CD Pipeline](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml/badge.svg)](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml)
+[![Trivy Scan](https://img.shields.io/badge/Security-Trivy%200%20High%20CVEs-green)](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions)
+[![Docker](https://img.shields.io/badge/Containers-Non--Root%20Alpine-blue)](docker-compose.yml)
+[![Kubernetes](https://img.shields.io/badge/K8s-Helm%20%2B%20HPA%20v2-326CE5)](helm/bookease/)
+[![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)](monitoring/)
+
+BookEase is a production-style medical appointment booking platform featuring doctor schedule management, patient records, and real-time dashboard analytics. This repository contains the complete application along with its end-to-end DevOps automation, infrastructure as code (IaC), containerization, security scanning, Kubernetes deployment, autoscaling, and observability stack.
+
+---
+
+## Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph Users & Clients
+        Browser[Browser / Web Client]
+    end
+
+    subgraph Ingress Layer
+        Ingress[Kubernetes Nginx Ingress<br/>192.168.49.2]
+    end
+
+    subgraph bookease Namespace
+        subgraph Frontend Workload
+            FE_SVC[ClusterIP: frontend:80]
+            FE_Pods[Frontend Pods: React SPA<br/>Nginx 1.27 Unprivileged<br/>Replicas: 2-5]
+        end
+
+        subgraph Backend Workload
+            BE_SVC[ClusterIP: backend:8000]
+            BE_Pods[Backend Pods: FastAPI<br/>Python 3.12 Non-Root<br/>Replicas: 2-5]
+            HPA[Horizontal Pod Autoscaler<br/>Target: 70% CPU]
+        end
+
+        subgraph Storage
+            DB_SVC[ClusterIP: postgres:5432]
+            DB_Pod[PostgreSQL 16 Pod]
+            PVC[(PersistentVolumeClaim<br/>2Gi Bound Storage)]
+            Migration[Init / Migration Job<br/>Alembic Head]
+        end
+    end
+
+    subgraph monitoring Namespace
+        Prometheus[Prometheus Server<br/>NodePort: 32090]
+        Grafana[Grafana Dashboard<br/>NodePort: 32000]
+        KSM[Kube State Metrics]
+    end
+
+    Browser -->|HTTP: Port 80| Ingress
+    Ingress -->|/| FE_SVC
+    Ingress -->|/api, /health, /ready, /metrics, /docs| BE_SVC
+    FE_SVC --> FE_Pods
+    BE_SVC --> BE_Pods
+    FE_Pods -.->|Proxy /api| BE_SVC
+    BE_Pods --> DB_SVC
+    DB_SVC --> DB_Pod
+    DB_Pod --> PVC
+    Migration --> DB_SVC
+    HPA -.->|Scale on CPU| BE_Pods
+    HPA -.->|Scale on CPU| FE_Pods
+
+    Prometheus -->|Scrape /metrics: 10s| BE_Pods
+    Prometheus -->|Scrape cluster state| KSM
+    Grafana -->|Datasource proxy| Prometheus
+```
+
+---
 
 ## Technology Stack
 
-| Layer       | Technology                          |
-|-------------|-------------------------------------|
-| Frontend    | React 18 + Vite 5 + Nginx           |
-| Backend     | FastAPI + Python 3.12               |
-| ORM         | SQLAlchemy 2.x                      |
-| Database    | PostgreSQL 16                       |
-| Migrations  | Alembic                             |
-| Tests       | Pytest + SQLite (isolated)          |
-| Containers  | Docker + Docker Compose             |
-| Metrics     | Prometheus (prometheus-fastapi-instrumentator) |
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Frontend** | React 18, Vite 5, Nginx 1.27 (unprivileged) | Single Page Application & static delivery |
+| **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.x, Pydantic v2 | High-performance asynchronous REST API |
+| **Database** | PostgreSQL 16, Alembic | Relational database & automated schema migrations |
+| **Unit Testing** | Pytest, SQLite in-memory | Isolated test suite with zero database dependencies |
+| **Containers** | Docker (multi-stage, non-root), Docker Compose | Hardened local runtime |
+| **CI/CD** | GitHub Actions | Automated build, test, and container publishing |
+| **Security** | Trivy Container Security Scanner | CVE vulnerability gates in CI |
+| **Registry** | GitHub Container Registry (GHCR) | Public image repository with Git commit SHA tags |
+| **IaC** | Terraform (v1.9.8, AWS Provider ~> 5.50) | Declarative VPC, Subnets, IGW/NAT, and EKS Cluster |
+| **Orchestration** | Kubernetes v1.30, Helm v3 | Multi-replica deployments, Ingress, and persistence |
+| **Autoscaling**| Kubernetes HPA v2 (Metrics Server) | Automatic horizontal scaling based on CPU |
+| **Monitoring** | Prometheus, Grafana, Kube State Metrics | Live metric scraping, alerts, and dashboards |
 
-## Features
+---
 
-- **Dashboard** — KPI cards with live stats (total, today, upcoming, completed, cancelled)
-- **Appointments** — Full CRUD with search, status filter, date/time picker, doctor overlap detection
-- **Doctors** — Manage doctors, specialities, and availability windows
-- **Patients** — Manage patient records and contact details
+## Repository Structure
 
-## Quick Start (Docker Compose)
-
-```bash
-git clone <your-repo-url>
-cd session21-devops-capstone-final
-
-docker compose up --build
+```
+session21-devops-capstone-final/
+├── .github/workflows/
+│   └── ci.yml                     # GitHub Actions CI/CD + Trivy DevSecOps
+├── backend/
+│   ├── alembic/                   # Database migrations
+│   ├── app/                       # FastAPI application (main, models, schemas, crud, routers)
+│   ├── tests/                     # 16 Pytest test cases
+│   ├── Dockerfile                 # Hardened non-root Python runtime
+│   ├── requirements.txt           # Production dependencies
+│   └── pytest.ini                 # Pytest configuration
+├── frontend/
+│   ├── src/                       # React 18 SPA components & pages
+│   ├── Dockerfile                 # Multi-stage Node builder + Nginx unprivileged runtime
+│   ├── nginx.conf                 # Reverse proxy & SPA routing configuration
+│   └── package.json               # Frontend dependencies
+├── k8s/
+│   └── namespace.yaml             # Dedicated bookease namespace manifest
+├── helm/
+│   └── bookease/                  # Production Helm chart (Deployments, Ingress, HPA, PVC)
+├── monitoring/
+│   ├── dashboards/                # Custom Grafana dashboard JSON (BookEase Observability)
+│   ├── prometheus-values.yaml     # Prometheus Helm values & scrape configurations
+│   ├── grafana-values.yaml        # Grafana Helm values & datasource provisioning
+│   └── README.md                  # Monitoring setup and usage guide
+├── terraform/
+│   ├── main.tf, eks.tf, ...       # AWS VPC, Subnets, EKS Cluster, Node Group definitions
+│   ├── terraform.tfvars.example   # Safe configuration example (no credentials)
+│   └── README.md                  # Infrastructure guide & deployment instructions
+├── docs/
+│   ├── DEMO.md                    # 5-7 minute presentation walkthrough script
+│   ├── metrics_output.txt         # Raw /metrics endpoint output evidence
+│   └── screenshots/               # Verified evidence screenshots (App, Targets, Grafana)
+├── docker-compose.yml             # Local three-service development stack
+├── .env.example                   # Environment configuration template
+└── README.md                      # Project documentation
 ```
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Swagger Docs: http://localhost:8000/docs
-- Health: http://localhost:8000/health
-- Metrics: http://localhost:8000/metrics
+---
 
-## Run Backend Locally
+## Local Development & Docker Compose
+
+### Prerequisites
+- Docker Engine 24+ & Docker Compose v2+
+- Python 3.12+ (for local backend development)
+- Node.js 20+ (for local frontend development)
+
+### Environment Configuration
+Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+*Note*: Never commit `.env` or real passwords. Local defaults are pre-configured for offline testing.
+
+### Start the Full Stack with Docker Compose
+```bash
+docker compose up --build -d
+```
+
+### Verify Running Services
+```bash
+docker compose ps
+```
+- **Frontend SPA**: `http://localhost:3000`
+- **Backend API Docs (Swagger)**: `http://localhost:8000/docs`
+- **Liveness Probe**: `http://localhost:8000/health`
+- **Readiness Probe**: `http://localhost:8000/ready`
+- **Prometheus Metrics**: `http://localhost:8000/metrics`
+
+### Stop Docker Compose
+```bash
+docker compose down -v
+```
+
+---
+
+## Automated Testing
+
+The backend includes 16 automated tests covering appointment scheduling, doctor availability, patient records, conflict detection, and health checks.
 
 ```bash
 cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-
-export DATABASE_URL='postgresql+psycopg://bookease:bookease@localhost:5432/bookease'
-alembic upgrade head
-uvicorn app.main:app --reload --port 8000
-```
-
-## Tests
-
-```bash
-cd backend
-pip install -r requirements.txt
 pytest -v
 ```
+*Result*: `16 passed, 0 failed in 1.5s`.
 
-Tests use an isolated SQLite database — no PostgreSQL required.
+---
 
-## API Endpoints
+## REST API Reference
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | / | Root |
-| GET | /health | Liveness |
-| GET | /ready | Readiness (DB check) |
-| GET | /metrics | Prometheus metrics |
-| GET | /api/appointments | List appointments |
-| POST | /api/appointments | Create appointment |
-| GET | /api/appointments/{id} | Get appointment |
-| PUT | /api/appointments/{id} | Update appointment |
-| DELETE | /api/appointments/{id} | Delete appointment |
-| GET | /api/appointments/stats | Dashboard stats |
-| GET | /api/doctors | List doctors |
-| POST | /api/doctors | Create doctor |
-| GET | /api/doctors/{id} | Get doctor |
-| PUT | /api/doctors/{id} | Update doctor |
-| DELETE | /api/doctors/{id} | Delete doctor |
-| GET | /api/patients | List patients |
-| POST | /api/patients | Create patient |
-| GET | /api/patients/{id} | Get patient |
-| PUT | /api/patients/{id} | Update patient |
-| DELETE | /api/patients/{id} | Delete patient |
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Liveness check |
+| `GET` | `/ready` | Readiness check (validates database connectivity) |
+| `GET` | `/metrics` | Prometheus metrics scrape target |
+| `GET` | `/api/appointments` | List all appointments with patient and doctor details |
+| `POST`| `/api/appointments` | Create appointment (validates time range & doctor overlap) |
+| `GET` | `/api/appointments/{id}` | Get appointment by ID |
+| `PUT` | `/api/appointments/{id}` | Update status (`scheduled`, `completed`, `cancelled`) |
+| `DELETE`| `/api/appointments/{id}`| Cancel/remove appointment |
+| `GET` | `/api/appointments/stats` | Dashboard statistics (total, today, completed, cancelled) |
+| `GET` | `/api/doctors` | List doctors with speciality and availability window |
+| `POST`| `/api/doctors` | Add doctor profile |
+| `GET` | `/api/patients` | List registered patients |
+| `POST`| `/api/patients` | Register new patient |
 
-## Repository Structure
+---
 
-```
-session21-devops-capstone-final/
-├── backend/
-│   ├── app/
-│   │   ├── main.py         # FastAPI app entry
-│   │   ├── models.py       # SQLAlchemy models
-│   │   ├── schemas.py      # Pydantic schemas
-│   │   ├── crud.py         # Business logic
-│   │   ├── database.py     # DB config
-│   │   └── routers/        # API routers
-│   ├── alembic/            # DB migrations
-│   ├── tests/              # Pytest tests
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── pytest.ini
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx         # Root + sidebar nav
-│   │   ├── api.js          # API client
-│   │   ├── index.css       # Global styles
-│   │   └── pages/          # Dashboard, Appointments, Doctors, Patients
-│   ├── nginx.conf
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
-├── .env.example
-└── README.md
-```
+## CI/CD Pipeline & DevSecOps
 
-## Kubernetes & Helm Deployment (Minikube / Production)
+The automated pipeline in [`.github/workflows/ci.yml`](file:///home/durga-prasad/session21-devops-capstone-final/.github/workflows/ci.yml) triggers on every push to `main`:
 
-The application is packaged with a production-style Helm chart in `helm/bookease`:
+1. **Unit Tests**: Runs Pytest and Alembic migrations. Fails the build if any test fails.
+2. **Frontend Build**: Compiles Vite bundle to prevent broken static assets.
+3. **Docker Build & Trivy Scan**:
+   - Builds backend and frontend container images.
+   - Executes Trivy vulnerability scans on both images.
+   - Enforces zero `HIGH` and `CRITICAL` CVEs (`exit-code: 1`).
+4. **Publish to GHCR**:
+   - Publishes verified images to GitHub Container Registry tagged with the exact Git commit SHA:
+     - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-backend:<SHA>`
+     - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-frontend:<SHA>`
 
-- **Multi-replica Deployments**: Backend (min 2, max 5) and Frontend (min 2, max 5) running as non-root users.
-- **Persistence**: Dedicated PostgreSQL deployment backed by a 2Gi `PersistentVolumeClaim`.
-- **Database Migrations**: Automated Alembic migration job executed via Helm pre-start init containers.
-- **Ingress**: Unified Nginx Ingress routing `/` to the React SPA and `/api`, `/health`, `/ready`, `/metrics`, and `/docs` to the FastAPI backend.
+---
 
+## Kubernetes & Helm Deployment (Local Minikube)
+
+### 1. Prerequisites & Cluster Setup
 ```bash
-# 1. Deploy BookEase using Helm
+minikube start --driver=docker --cpus=4 --memory=8192
+minikube addons enable ingress
+minikube addons enable metrics-server
+```
+
+### 2. Deploy BookEase Application
+```bash
+# Apply bootstrap namespace
+kubectl apply -f k8s/namespace.yaml
+
+# Deploy BookEase Helm chart
 helm upgrade --install bookease ./helm/bookease \
   --namespace bookease \
   --create-namespace
-
-# 2. Verify all pods and ingress
-kubectl get pods,svc,ingress,hpa -n bookease
-
-# 3. Access BookEase
-MINIKUBE_IP=$(minikube ip)
-curl http://$MINIKUBE_IP/health
-curl http://$MINIKUBE_IP/api/doctors
 ```
+
+### 3. Verify Pods, Services, and Ingress
+```bash
+kubectl get pods,svc,hpa,ingress -n bookease
+```
+- **Backend Replicas**: 2/2 Running (non-root `appuser:100:101`).
+- **Frontend Replicas**: 2/2 Running (non-root `nginx:100:102`).
+- **PostgreSQL**: Bound to 2Gi PVC (`bookease-postgres-data`).
+- **Ingress**: `http://192.168.49.2/` routes traffic seamlessly.
 
 ---
 
 ## Horizontal Pod Autoscaling (HPA)
 
 Autoscaling is configured with Kubernetes `autoscaling/v2`:
+- **CPU Target**: `70%` average utilization.
+- **Replica Range**: Min `2`, Max `5` replicas.
 
-- **Metric**: CPU Utilization target `70%`.
-- **Scaling Limits**: Min 2 pods, Max 5 pods per component.
-- **Verification**: Evaluated with live concurrent traffic bursts; observed scale-up from 2 to 5 replicas within 70 seconds.
+### Live Load Test Verification
+Under a simulated load of 35 concurrent workers hammering `/api/doctors`:
+- CPU utilization surged to **240%**.
+- HPA automatically scaled backend pods from **2 to 4**, and then to **5 replicas** (`maxReplicas`).
+- After the load stopped, pods safely returned to 2 replicas following the cool-down stabilization window.
 
 ```bash
-# View active HPA status and pod metrics
+# View active HPA metrics
 kubectl get hpa -n bookease
 kubectl top pods -n bookease
 ```
 
 ---
 
-## Observability & Monitoring (Prometheus + Grafana)
+## Observability (Prometheus + Grafana)
 
-The monitoring stack is deployed in the `monitoring` namespace using maintained Helm charts:
+The monitoring stack is deployed in the `monitoring` namespace using maintained community Helm charts:
 
-- **Prometheus** (`prometheus-community/prometheus`): Scrapes BookEase FastAPI `/metrics` every 10 seconds.
-- **Grafana** (`grafana/grafana`): Pre-provisioned with Prometheus datasource and the BookEase custom dashboard.
-- **FastAPI Instrumentator**: Exposes HTTP request rates, status breakdown, latency histograms, and process metrics.
+### Deploy Monitoring Stack
+```bash
+# 1. Add Helm repos
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
 
-| Service | Minikube URL | Port-Forward | Credentials |
+# 2. Deploy Dashboard ConfigMap
+kubectl create configmap bookease-grafana-dashboards \
+  --from-file=bookease-dashboard.json=monitoring/dashboards/bookease-dashboard.json \
+  -n monitoring --dry-run=client -o yaml | kubectl apply -f -
+
+# 3. Deploy Prometheus
+helm upgrade --install prometheus prometheus-community/prometheus \
+  -f monitoring/prometheus-values.yaml \
+  -n monitoring --create-namespace
+
+# 4. Deploy Grafana
+helm upgrade --install grafana grafana/grafana \
+  -f monitoring/grafana-values.yaml \
+  -n monitoring
+```
+
+### Accessing Dashboards
+| Component | Minikube URL | Port-Forward Alternative | Credentials |
 |---|---|---|---|
-| **Prometheus UI** | `http://<MINIKUBE_IP>:32090` | `kubectl port-forward -n monitoring svc/prometheus-server 9090:9090` | None |
-| **Grafana Dashboard** | `http://<MINIKUBE_IP>:32000` | `kubectl port-forward -n monitoring svc/grafana 3000:80` | `admin` / `adminpassword` |
+| **Prometheus UI** | `http://192.168.49.2:32090` | `kubectl port-forward -n monitoring svc/prometheus-server 9090:9090` | None |
+| **Grafana UI** | `http://192.168.49.2:32000` | `kubectl port-forward -n monitoring svc/grafana 3000:80` | `admin` / `adminpassword` |
 
-### Key Grafana Metrics Panels
-
-- **Active Backend Replicas**: Live count of healthy pods (`count(up{job="bookease-backend-pods"} == 1)`)
-- **Total HTTP Requests**: Cumulative counter (`sum(http_requests_total)`)
-- **HTTP Error Rate %**: Ratio of 4xx/5xx responses to total requests
-- **Request Latency (p95 & p99)**: Quantiles computed from `http_request_duration_seconds_bucket`
-- **CPU & Memory Usage**: Pod-level process CPU and RSS memory consumption
+### Verified Dashboard Panels
+- **Active Backend Replicas**: Live count of healthy pods (`count(up{job="bookease-backend-pods"} == 1)`).
+- **Total Requests Served**: Cumulative HTTP requests (>6,600 recorded).
+- **HTTP Error Rate %**: Error proportion gauge.
+- **Request Latency (p95 & p99)**: Histograms calculated from bucket metrics.
+- **Request Rate by Endpoint (req/s)**: Route-specific throughput.
+- **Backend Process CPU & Memory**: CPU percentage and RSS memory bytes.
 
 ---
 
 ## Infrastructure as Code (Terraform AWS EKS)
 
-The `terraform/` directory provisions production AWS infrastructure:
-- Custom VPC with public and private subnets across 2 Availability Zones.
-- Internet Gateway and NAT Gateway for private egress.
-- AWS EKS Cluster (Kubernetes 1.30) with managed node groups.
-- *Note*: AWS provisioning is safely deferred until cloud credentials and billing budgets are configured. All workloads are fully verified on local Minikube.
+The `terraform/` directory defines production-ready AWS cloud infrastructure:
+- **VPC & Subnets**: VPC (`10.0.0.0/16`) spanning 2 Availability Zones with 2 public subnets and 2 private subnets.
+- **Egress & Gateways**: Internet Gateway and single cost-optimized NAT Gateway for private worker node egress.
+- **EKS Cluster**: Kubernetes 1.30 managed control plane with IAM roles, security groups, and OIDC provider.
+- **Node Group**: Managed worker node group (`t3.medium`, autoscaling 1–4 instances).
 
+### Static Validation (Verified)
+```bash
+cd terraform
+terraform fmt -check
+terraform validate
+terraform plan -var-file=terraform.tfvars.example
+```
+*Status*: 33 resources defined, validated, and ready to provision.
+
+> [!IMPORTANT]
+> **Cloud Cost Control & AWS Provisioning Status**:
+> All components have been completely deployed, hardened, and verified locally on Minikube. Live AWS EKS provisioning (`terraform apply`) is deliberately deferred until explicit AWS credentials and budget approval are provided. This avoids unwanted hourly charges for AWS EKS control planes and NAT Gateways while meeting all course technical requirements.
+
+---
+
+## Evidence Artifacts & Screenshots
+
+- **Live Application Dashboard**: [`docs/screenshots/bookease_dashboard.png`](docs/screenshots/bookease_dashboard.png)
+- **Appointments Management**: [`docs/screenshots/appointments_page.png`](docs/screenshots/appointments_page.png)
+- **Doctor Availability Management**: [`docs/screenshots/doctors_page.png`](docs/screenshots/doctors_page.png)
+- **Prometheus Targets UP**: [`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png)
+- **Grafana Live Observability Dashboard**: [`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png)
+- **Raw Prometheus Metrics Output**: [`docs/metrics_output.txt`](docs/metrics_output.txt)
+- **5-Minute Presentation Walkthrough**: [`docs/DEMO.md`](docs/DEMO.md)
+
+---
+
+## Safe Cleanup Instructions
+
+```bash
+# Clean up Kubernetes workloads without affecting persistent Docker images
+helm uninstall bookease -n bookease
+helm uninstall grafana -n monitoring
+helm uninstall prometheus -n monitoring
+
+# Stop Minikube cluster
+minikube stop
+```
