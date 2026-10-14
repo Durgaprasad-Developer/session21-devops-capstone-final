@@ -1,0 +1,155 @@
+# ── BookEase Helm Values ────────────────────────────────────────────────────────
+
+# Global settings
+global:
+  environment: local
+
+# ── Backend Configuration ──────────────────────────────────────────────────────
+backend:
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-backend
+    tag: 2be5d623eaea9c958783803ba3d8a8b89e7e0a79
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 384Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  probes:
+    liveness:
+      path: /health
+      initialDelaySeconds: 10
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      path: /ready
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 75
+
+# ── Frontend Configuration ─────────────────────────────────────────────────────
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-frontend
+    tag: 2be5d623eaea9c958783803ba3d8a8b89e7e0a79
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+  probes:
+    liveness:
+      path: /
+      initialDelaySeconds: 10
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      path: /
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 75
+
+# ── PostgreSQL Database ────────────────────────────────────────────────────────
+postgresql:
+  enabled: true
+
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+
+  auth:
+    username: bookease
+    password: bookease_k8s_password
+    database: bookease
+
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+
+  service:
+    port: 5432
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# ── Ingress Configuration ──────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+  hosts:
+    - host: ""
+      paths:
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /health
+          pathType: Exact
+          service: backend
+        - path: /ready
+          pathType: Exact
+          service: backend
+        - path: /metrics
+          pathType: Exact
+          service: backend
+        - path: /docs
+          pathType: Prefix
+          service: backend
+        - path: /openapi.json
+          pathType: Exact
+          service: backend
+        - path: /
+          pathType: Prefix
+          service: frontend
+
+# ── Database Migration Job ─────────────────────────────────────────────────────
+migration:
+  enabled: true

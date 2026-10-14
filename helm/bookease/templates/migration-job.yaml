@@ -1,0 +1,40 @@
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "bookease.fullname" . }}-migration
+  labels:
+    app.kubernetes.io/component: migration
+    {{- include "bookease.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: migration
+        {{- include "bookease.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ include "bookease.fullname" . }}-postgres -p 5432 -U {{ .Values.postgresql.auth.username }}; do
+                echo "Waiting for postgres to become ready..."
+                sleep 2
+              done
+      containers:
+        - name: run-migrations
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          command: ["sh", "-c", "alembic upgrade head"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bookease.fullname" . }}-secret
+                  key: database-url
+{{- end }}

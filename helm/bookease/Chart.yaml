@@ -1,0 +1,9 @@
+apiVersion: v2
+name: bookease
+description: Production-style Helm chart for BookEase Appointment Management System
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Durga Prasad
+    email: bdurga.24bcs10012@sst.scaler.com

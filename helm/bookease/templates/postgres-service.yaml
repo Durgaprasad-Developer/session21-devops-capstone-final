@@ -1,0 +1,19 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bookease.fullname" . }}-postgres
+  labels:
+    app.kubernetes.io/component: database
+    {{- include "bookease.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.postgresql.service.port }}
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    app.kubernetes.io/component: database
+    {{- include "bookease.selectorLabels" . | nindent 4 }}
+{{- end }}

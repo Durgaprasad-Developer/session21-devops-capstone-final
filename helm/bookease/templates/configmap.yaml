@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bookease.fullname" . }}-config
+  labels:
+    {{- include "bookease.labels" . | nindent 4 }}
+data:
+  APP_ENV: {{ .Values.global.environment | quote }}
+  POSTGRES_USER: {{ .Values.postgresql.auth.username | quote }}
+  POSTGRES_DB: {{ .Values.postgresql.auth.database | quote }}
+  AUTO_MIGRATE: "false"

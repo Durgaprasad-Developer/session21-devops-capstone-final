@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "bookease.fullname" . }}-frontend
+  labels:
+    app.kubernetes.io/component: frontend
+    {{- include "bookease.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/component: frontend
+    {{- include "bookease.selectorLabels" . | nindent 4 }}
