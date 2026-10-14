@@ -24,7 +24,7 @@ AWS Cloud (ap-south-1 — Mumbai)
   - Public subnets tagged with `kubernetes.io/role/elb = 1`.
   - Private subnets tagged with `kubernetes.io/role/internal-elb = 1`.
 - **Egress Architecture**: Internet Gateway for public traffic and a single cost-optimized NAT Gateway for private node egress.
-- **Amazon EKS Cluster**: Kubernetes v1.30 control plane with private and public API endpoint access.
+- **Amazon EKS Cluster**: Kubernetes v1.34 control plane (AWS Standard Support) with private and public API endpoint access.
 - **Managed Node Group**: 2x `t3.medium` instances (scaling 1–4) running Amazon Linux 2 / Bottlerocket with 20 GiB gp3 root volumes.
 - **IAM Roles & Policies**: Dedicated least-privilege IAM roles for EKS Control Plane (`AmazonEKSClusterPolicy`, `AmazonEKSVPCResourceController`) and Worker Nodes (`AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy`, `AmazonEC2ContainerRegistryReadOnly`).
 - **Security Groups**: Granular control plane and node communication rules.

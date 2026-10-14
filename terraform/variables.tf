@@ -17,9 +17,9 @@ variable "cluster_name" {
 }
 
 variable "cluster_version" {
-  description = "Kubernetes version for the Amazon EKS control plane (Supported: 1.28, 1.29, 1.30, 1.31, 1.32. Standard default: 1.30)"
+  description = "Kubernetes version for Amazon EKS control plane (Official AWS Standard Support: 1.34 to 1.37; avoids Extended Support surcharges). Default: 1.34"
   type        = string
-  default     = "1.30"
+  default     = "1.34"
 }
 
 variable "vpc_cidr" {

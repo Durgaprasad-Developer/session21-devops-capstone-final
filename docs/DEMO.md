@@ -143,11 +143,11 @@ curl -s http://192.168.49.2:32090/api/v1/targets | jq '.data.activeTargets[] | {
   - Custom VPC (`10.0.0.0/16`) in `ap-south-1`.
   - 2 Public Subnets + 2 Private Subnets across 2 Availability Zones.
   - Internet Gateway + NAT Gateway for secure private egress.
-  - AWS EKS Cluster (v1.30) + Managed Node Group (`t3.medium`, autoscaling 1–4 nodes).
+  - AWS EKS Cluster (v1.34 Standard Support) + Managed Node Group (`t3.medium`, autoscaling 1–4 nodes).
 - **Deployment Rationale**:
-  - Complete `terraform plan` succeeds statically.
-  - **AWS live provisioning is deliberately deferred** until AWS account credentials and budget are allocated, preventing unintentional cloud charges.
-  - The entire stack is completely verified on local Minikube.
+  - Offline validation (`terraform fmt -check`, `terraform init -backend=false`, `terraform validate`) passes cleanly.
+  - **AWS live provisioning is deliberately deferred** until AWS account credentials and budget are allocated, preventing unintentional cloud charges (~$5.60/day).
+  - The entire application and Kubernetes stack is completely verified on local Minikube.
 
 ---
 

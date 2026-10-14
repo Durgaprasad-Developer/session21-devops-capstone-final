@@ -122,7 +122,7 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 | `terraform init` completes without errors | 1 | **PASS** | `terraform/.terraform/` | `terraform init` completed successfully |
 | `terraform plan` produces a non-empty plan | 2 | **PARTIAL** | `terraform/` | `terraform validate` passes; live plan requires AWS STS credentials |
 | VPC with at least two public subnets provisioned | 3 | **PARTIAL** | `terraform/networking.tf` | Defined in HCL (2 public + 2 private across 2 AZs); live AWS apply deferred |
-| EKS cluster provisioned with worker node group | 4 | **PARTIAL** | `terraform/eks.tf` | Defined in HCL (EKS v1.30, node group `t3.medium`); live AWS apply deferred |
+| EKS cluster provisioned with worker node group | 4 | **PARTIAL** | `terraform/eks.tf` | Defined in HCL (EKS v1.34 Standard Support, node group `t3.medium`); live AWS apply deferred |
 | `terraform destroy` tears down all resources cleanly | 2 | **NOT VERIFIED** | `terraform/` | Pending live AWS provisioning |
 | `terraform.tfvars.example` present (no secrets) | 1 | **PASS** | `terraform/terraform.tfvars.example` | Verified present and tracked in Git with zero credentials |
 
@@ -198,8 +198,9 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
    - With mock credentials, AWS STS rejects the request (`InvalidClientTokenId`).
    - *Conclusion*: A true live `terraform plan` cannot be generated without active AWS credentials. The 33 planned resources represent the declared HCL resources across the 9 `.tf` files.
 2. **Terraform & EKS Versions**:
-   - Installed: Terraform `v1.9.8` (compatible with `versions.tf` constraint `>= 1.5.0`).
-   - EKS Kubernetes version: `1.30` (officially supported on AWS EKS).
+   - Installed: Terraform `v1.9.8` (compatible with `versions.tf` constraint `>= 1.5.0, < 2.0.0`).
+   - Provider: `hashicorp/aws v5.100.0`.
+   - EKS Kubernetes version: `1.34` (verified via AWS official EKS release lifecycle documentation as active Standard Support through Dec 2, 2026; avoids the $0.60/hr Extended Support surcharge incurred by older versions such as 1.30-1.33).
 3. **Secret Hygiene**:
    - Scanned Git history: Zero AWS access keys (`AKIA...`), private keys, or credentials found in tracked files or commit logs.
    - Grafana credentials in Helm values configured to support overrides via Kubernetes Secret or CLI `--set adminPassword=...`.

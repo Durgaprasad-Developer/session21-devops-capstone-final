@@ -82,7 +82,7 @@ graph TB
 | **Security** | Trivy Container Security Scanner | CVE vulnerability gates in CI |
 | **Registry** | GitHub Container Registry (GHCR) | Public image repository with Git commit SHA tags |
 | **IaC** | Terraform (v1.9.8, AWS Provider ~> 5.50) | Declarative VPC, Subnets, IGW/NAT, and EKS Cluster |
-| **Orchestration** | Kubernetes v1.30, Helm v3 | Multi-replica deployments, Ingress, and persistence |
+| **Orchestration** | Kubernetes v1.34 (AWS EKS Standard Support) / Minikube v1.30, Helm v3 | Multi-replica deployments, Ingress, and persistence |
 | **Autoscaling**| Kubernetes HPA v2 (Metrics Server) | Automatic horizontal scaling based on CPU |
 | **Monitoring** | Prometheus, Grafana, Kube State Metrics | Live metric scraping, alerts, and dashboards |
 
@@ -314,24 +314,50 @@ helm upgrade --install grafana grafana/grafana \
 
 ## Infrastructure as Code (Terraform AWS EKS)
 
-The `terraform/` directory defines production-ready AWS cloud infrastructure:
-- **VPC & Subnets**: VPC (`10.0.0.0/16`) spanning 2 Availability Zones with 2 public subnets and 2 private subnets.
-- **Egress & Gateways**: Internet Gateway and single cost-optimized NAT Gateway for private worker node egress.
-- **EKS Cluster**: Kubernetes 1.30 managed control plane with IAM roles, security groups, and OIDC provider.
-- **Node Group**: Managed worker node group (`t3.medium`, autoscaling 1–4 instances).
+The `terraform/` directory defines a production-ready, modular AWS cloud infrastructure designed for high availability and strict cost optimization:
 
-### Static Validation (Verified)
+### Architecture Summary
+- **Amazon VPC**: Custom CIDR `10.0.0.0/16` with DNS hostnames and DNS support enabled in region `ap-south-1` (Mumbai).
+- **Subnet Distribution (2 AZs)**:
+  - 2 Public Subnets: `10.0.1.0/24` (`ap-south-1a`) and `10.0.2.0/24` (`ap-south-1b`), tagged with `kubernetes.io/role/elb = 1`.
+  - 2 Private Subnets: `10.0.10.0/24` (`ap-south-1a`) and `10.0.20.0/24` (`ap-south-1b`), tagged with `kubernetes.io/role/internal-elb = 1`.
+- **Egress Architecture**: Internet Gateway for public traffic and a single cost-optimized NAT Gateway with Elastic IP for private worker node outbound connectivity.
+- **Amazon EKS Cluster**: Kubernetes v1.34 control plane (aligned with official AWS Standard Support through December 2026 to avoid extended support charges).
+- **Managed Node Group**: 2x `t3.medium` instances (scaling 1–4 nodes) with 20 GiB gp3 root storage deployed into private subnets.
+- **IAM Least Privilege**:
+  - Control plane role with `AmazonEKSClusterPolicy` and `AmazonEKSVPCResourceController`.
+  - Node group role with `AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy`, and `AmazonEC2ContainerRegistryReadOnly`.
+- **Security Groups & State**: Granular control plane egress rules, with `.gitignore` strictly omitting all state files (`*.tfstate`), `.terraform/`, and local variables (`*.tfvars`).
+
+### Offline Terraform Validation (Verified & Safe)
 ```bash
 cd terraform
 terraform fmt -check
+terraform init -backend=false
 terraform validate
-terraform plan -var-file=terraform.tfvars.example
 ```
-*Status*: 33 resources defined, validated, and ready to provision.
+- **Formatting**: `terraform fmt -check` passes with zero formatting issues.
+- **Initialization**: `terraform init -backend=false` successfully resolves provider `hashicorp/aws v5.100.0`.
+- **Validation**: `terraform validate` outputs:
+  ```text
+  Success! The configuration is valid.
+  ```
+
+### Configured vs. Provisioned Infrastructure (Honest Status)
+
+| Dimension | Configured in Terraform IaC | Live Provisioned on AWS Cloud |
+|---|---|---|
+| **VPC & Subnets (4 subnets across 2 AZs)** | **Yes** (Declared & Validated) | No (Deferred to prevent spend) |
+| **NAT Gateway & Elastic IP** | **Yes** (Declared & Validated) | No (Deferred to prevent spend) |
+| **EKS Control Plane (Kubernetes v1.34)** | **Yes** (Declared & Validated) | No (Deferred to prevent spend) |
+| **Managed Worker Node Group (2x t3.medium)** | **Yes** (Declared & Validated) | No (Deferred to prevent spend) |
+| **Local Minikube Cluster Deployment** | N/A (Local Helm release) | **Yes (100% Live & Verified)** |
 
 > [!IMPORTANT]
-> **Cloud Cost Control & AWS Provisioning Status**:
-> All components have been completely deployed, hardened, and verified locally on Minikube. Live AWS EKS provisioning (`terraform apply`) is deliberately deferred until explicit AWS credentials and budget approval are provided. This avoids unwanted hourly charges for AWS EKS control planes and NAT Gateways while meeting all course technical requirements.
+> **What Local Terraform Validation Proves vs. What Requires AWS Credentials**:
+> - **Proven by Local Checks**: Syntactic correctness of all HCL files, provider schema compatibility (`hashicorp/aws v5.100.0`), internal resource attribute references, IAM role policies, and safe variable definitions.
+> - **Requires Active AWS Credentials**: `terraform plan` (queries AWS STS `GetCallerIdentity` and AWS Availability Zones), `terraform apply` (creates real billable cloud resources: ~$0.10/hr EKS + ~$0.083/hr EC2 + ~$0.045/hr NAT Gateway = ~$5.60/day), and `terraform destroy`.
+> - **Cost Control Rationale**: All application, database, ingress, HPA autoscaling, and monitoring requirements are completely deployed and proven on Minikube. Live AWS infrastructure creation is kept at $0.00 until explicit student credentials and budget approval are provided.
 
 ---
 
