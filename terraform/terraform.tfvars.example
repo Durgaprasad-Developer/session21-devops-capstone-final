@@ -1,0 +1,25 @@
+# ── Safe Example Configuration for BookEase Infrastructure ────────────────────
+# Copy to terraform.tfvars and customize if needed:
+# cp terraform.tfvars.example terraform.tfvars
+
+aws_region  = "ap-south-1"
+environment = "dev"
+
+cluster_name    = "bookease-eks-cluster"
+cluster_version = "1.30"
+
+vpc_cidr             = "10.0.0.0/16"
+availability_zones   = ["ap-south-1a", "ap-south-1b"]
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.10.0/24", "10.0.20.0/24"]
+
+# Set to true to create a single cost-optimized NAT Gateway for private worker nodes.
+# Set to false only if budget strictly requires public-only worker nodes.
+enable_nat_gateway = true
+
+node_group_name     = "bookease-managed-nodes"
+node_instance_types = ["t3.medium"]
+node_desired_size   = 2
+node_min_size       = 1
+node_max_size       = 4
+node_disk_size      = 20
