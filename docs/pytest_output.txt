@@ -1,0 +1,37 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.4, pluggy-1.6.0 -- /home/durga-prasad/session21-devops-capstone-final/backend/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/durga-prasad/session21-devops-capstone-final
+plugins: anyio-4.15.1, asyncio-0.24.0
+asyncio: mode=Mode.STRICT, default_loop_scope=None
+collecting ... collected 16 items
+
+backend/tests/test_appointments.py::test_list_appointments_empty PASSED  [  6%]
+backend/tests/test_appointments.py::test_create_appointment PASSED       [ 12%]
+backend/tests/test_appointments.py::test_list_appointments_after_create PASSED [ 18%]
+backend/tests/test_appointments.py::test_get_appointment_by_id PASSED    [ 25%]
+backend/tests/test_appointments.py::test_update_appointment_status PASSED [ 31%]
+backend/tests/test_appointments.py::test_get_nonexistent_appointment PASSED [ 37%]
+backend/tests/test_appointments.py::test_delete_appointment PASSED       [ 43%]
+backend/tests/test_appointments.py::test_appointment_stats PASSED        [ 50%]
+backend/tests/test_appointments.py::test_end_time_before_start_time_rejected PASSED [ 56%]
+backend/tests/test_doctors_patients.py::test_create_and_list_doctors PASSED [ 62%]
+backend/tests/test_doctors_patients.py::test_get_nonexistent_doctor PASSED [ 68%]
+backend/tests/test_doctors_patients.py::test_create_and_list_patients PASSED [ 75%]
+backend/tests/test_doctors_patients.py::test_update_doctor PASSED        [ 81%]
+backend/tests/test_doctors_patients.py::test_delete_patient PASSED       [ 87%]
+backend/tests/test_health.py::test_health PASSED                         [ 93%]
+backend/tests/test_health.py::test_root PASSED                           [100%]
+
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /home/durga-prasad/session21-devops-capstone-final/backend/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend/tests/test_appointments.py: 41 warnings
+backend/tests/test_doctors_patients.py: 9 warnings
+  /home/durga-prasad/session21-devops-capstone-final/backend/.venv/lib/python3.12/site-packages/sqlalchemy/sql/schema.py:3596: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 16 passed, 51 warnings in 1.63s ========================

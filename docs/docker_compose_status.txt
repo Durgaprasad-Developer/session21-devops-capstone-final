@@ -1,0 +1,4 @@
+NAME                                         IMAGE                                      COMMAND                  SERVICE    CREATED       STATUS                 PORTS
+session21-devops-capstone-final-backend-1    session21-devops-capstone-final-backend    "/app/entrypoint.sh …"   backend    3 hours ago   Up 3 hours (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+session21-devops-capstone-final-db-1         postgres:16-alpine                         "docker-entrypoint.s…"   db         3 hours ago   Up 3 hours (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+session21-devops-capstone-final-frontend-1   session21-devops-capstone-final-frontend   "/docker-entrypoint.…"   frontend   3 hours ago   Up 3 hours (healthy)   0.0.0.0:3000->80/tcp, [::]:3000->80/tcp

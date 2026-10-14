@@ -1,0 +1,20 @@
+NAME                                     READY   STATUS      RESTARTS   AGE    IP            NODE       NOMINATED NODE   READINESS GATES
+pod/bookease-backend-694bb96966-4zb87    1/1     Running     0          134m   10.244.0.57   minikube   <none>           <none>
+pod/bookease-backend-694bb96966-j4tz4    1/1     Running     0          118m   10.244.0.65   minikube   <none>           <none>
+pod/bookease-frontend-75dfff7498-47j6c   1/1     Running     0          119m   10.244.0.62   minikube   <none>           <none>
+pod/bookease-frontend-75dfff7498-j8mhs   1/1     Running     0          133m   10.244.0.61   minikube   <none>           <none>
+pod/bookease-migration-npfpb             0/1     Completed   0          134m   10.244.0.59   minikube   <none>           <none>
+pod/bookease-postgres-59db9cf57c-j92x4   1/1     Running     0          134m   10.244.0.55   minikube   <none>           <none>
+
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE    SELECTOR
+service/backend             ClusterIP   10.107.15.141   <none>        8000/TCP   133m   app.kubernetes.io/component=backend,app.kubernetes.io/instance=bookease,app.kubernetes.io/name=bookease
+service/bookease-backend    ClusterIP   10.109.16.99    <none>        8000/TCP   134m   app.kubernetes.io/component=backend,app.kubernetes.io/instance=bookease,app.kubernetes.io/name=bookease
+service/bookease-frontend   ClusterIP   10.106.41.153   <none>        80/TCP     134m   app.kubernetes.io/component=frontend,app.kubernetes.io/instance=bookease,app.kubernetes.io/name=bookease
+service/bookease-postgres   ClusterIP   10.100.199.84   <none>        5432/TCP   134m   app.kubernetes.io/component=database,app.kubernetes.io/instance=bookease,app.kubernetes.io/name=bookease
+
+NAME                                         CLASS   HOSTS   ADDRESS        PORTS   AGE
+ingress.networking.k8s.io/bookease-ingress   nginx   *       192.168.49.2   80      134m
+
+NAME                                                    REFERENCE                      TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/bookease-backend    Deployment/bookease-backend    cpu: 2%/70%   2         5         2          119m
+horizontalpodautoscaler.autoscaling/bookease-frontend   Deployment/bookease-frontend   cpu: 2%/70%   2         5         2          119m
