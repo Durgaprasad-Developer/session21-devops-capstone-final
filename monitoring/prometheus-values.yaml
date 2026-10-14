@@ -1,0 +1,83 @@
+# ── Prometheus Helm Values for BookEase ──────────────────────────────────────────
+
+rbac:
+  create: true
+
+server:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 350m
+      memory: 384Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  persistentVolume:
+    enabled: false
+  service:
+    type: NodePort
+    nodePort: 32090
+    servicePort: 9090
+
+# Disable unused subcharts to keep Minikube lightweight
+alertmanager:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+
+kube-state-metrics:
+  enabled: true
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 20m
+      memory: 32Mi
+
+# Scrape configuration for BookEase application
+extraScrapeConfigs: |
+  - job_name: 'bookease-backend'
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ['bookease-backend.bookease.svc.cluster.local:8000']
+        labels:
+          app: bookease
+          component: backend
+          service: bookease-backend
+
+  - job_name: 'bookease-backend-pods'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - bookease
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
