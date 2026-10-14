@@ -17,7 +17,7 @@ variable "cluster_name" {
 }
 
 variable "cluster_version" {
-  description = "Kubernetes version for the EKS control plane"
+  description = "Kubernetes version for the Amazon EKS control plane (Supported: 1.28, 1.29, 1.30, 1.31, 1.32. Standard default: 1.30)"
   type        = string
   default     = "1.30"
 }
