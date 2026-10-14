@@ -13,6 +13,9 @@ RUN npm run build
 # ── Runtime stage ──────────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine
 
+# Apply security upgrades to base OS packages
+RUN apk update && apk upgrade --no-cache
+
 # Non-root: create user and update Nginx to use it
 RUN addgroup -S bookease && adduser -S -G bookease bookease
 

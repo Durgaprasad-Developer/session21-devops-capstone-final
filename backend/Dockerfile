@@ -11,6 +11,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # ── Runtime stage ──────────────────────────────────────────────────────────────
 FROM python:3.12-slim
 
+# Apply OS security updates
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Non-root user
