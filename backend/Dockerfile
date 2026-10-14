@@ -19,13 +19,16 @@ RUN addgroup --system bookease && adduser --system --ingroup bookease bookease
 # Copy installed packages
 COPY --from=builder /install /usr/local
 
-# Copy application code and migrations
+# Copy application code, migrations, tests, and entrypoint
 COPY alembic/ ./alembic/
 COPY alembic.ini .
 COPY app/ ./app/
+COPY tests/ ./tests/
+COPY pytest.ini .
+COPY entrypoint.sh .
 
-# Set ownership
-RUN chown -R bookease:bookease /app
+# Set ownership and execute permissions
+RUN chmod +x /app/entrypoint.sh && chown -R bookease:bookease /app
 
 USER bookease
 
@@ -33,5 +36,6 @@ EXPOSE 8000
 
 ENV PYTHONUNBUFFERED=1
 
-# Run Alembic migrations then start Uvicorn
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
