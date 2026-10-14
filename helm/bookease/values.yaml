@@ -40,10 +40,10 @@ backend:
       failureThreshold: 3
 
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 2
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 75
+    targetCPUUtilizationPercentage: 70
 
 # ── Frontend Configuration ─────────────────────────────────────────────────────
 frontend:
@@ -81,10 +81,10 @@ frontend:
       failureThreshold: 3
 
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 2
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 75
+    targetCPUUtilizationPercentage: 70
 
 # ── PostgreSQL Database ────────────────────────────────────────────────────────
 postgresql:

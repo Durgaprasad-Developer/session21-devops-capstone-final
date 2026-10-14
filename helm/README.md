@@ -44,3 +44,27 @@ curl http://$MINIKUBE_IP/api/appointments
 | `postgresql.persistence.size` | PVC storage size for PostgreSQL | `2Gi` |
 | `ingress.enabled` | Enable Kubernetes Ingress resource | `true` |
 | `ingress.className` | Ingress controller class name | `nginx` |
+| `backend.autoscaling.enabled` | Enable Horizontal Pod Autoscaling for backend | `true` |
+| `backend.autoscaling.minReplicas` | Minimum backend replicas | `2` |
+| `backend.autoscaling.maxReplicas` | Maximum backend replicas | `5` |
+| `backend.autoscaling.targetCPUUtilizationPercentage` | Target average CPU utilization | `70` |
+| `frontend.autoscaling.enabled` | Enable Horizontal Pod Autoscaling for frontend | `true` |
+| `frontend.autoscaling.minReplicas` | Minimum frontend replicas | `2` |
+| `frontend.autoscaling.maxReplicas` | Maximum frontend replicas | `5` |
+| `frontend.autoscaling.targetCPUUtilizationPercentage` | Target average CPU utilization | `70` |
+
+## Horizontal Pod Autoscaling (HPA)
+
+Autoscaling is managed via Kubernetes `autoscaling/v2` HPA resources:
+- Min Replicas: 2
+- Max Replicas: 5
+- Target CPU Utilization: 70%
+
+```bash
+# Verify HPA status
+kubectl get hpa -n bookease
+
+# View resource usage across pods
+kubectl top pods -n bookease
+```
+

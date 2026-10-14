@@ -6,7 +6,9 @@ metadata:
     app.kubernetes.io/component: frontend
     {{- include "bookease.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.frontend.autoscaling.enabled }}
   replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/component: frontend
