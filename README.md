@@ -54,37 +54,37 @@
 ```mermaid
 graph TB
     subgraph Users & Clients
-        Browser[Browser / Web Client]
+        Browser["Browser / Web Client"]
     end
 
     subgraph Ingress Layer
-        Ingress[Kubernetes Nginx Ingress<br/>192.168.49.2]
+        Ingress["Kubernetes Nginx Ingress<br/>192.168.49.2"]
     end
 
     subgraph bookease Namespace
         subgraph Frontend Workload
-            FE_SVC[ClusterIP: frontend:80]
-            FE_Pods[Frontend Pods: React SPA<br/>Nginx 1.27 Unprivileged<br/>Replicas: 2-5]
+            FE_SVC["ClusterIP: frontend:80"]
+            FE_Pods["Frontend Pods: React SPA<br/>Nginx 1.27 Unprivileged<br/>Replicas: 2-5"]
         end
 
         subgraph Backend Workload
-            BE_SVC[ClusterIP: backend:8000]
-            BE_Pods[Backend Pods: FastAPI<br/>Python 3.12 Non-Root<br/>Replicas: 2-5]
-            HPA[Horizontal Pod Autoscaler<br/>Target: 70% CPU]
+            BE_SVC["ClusterIP: backend:8000"]
+            BE_Pods["Backend Pods: FastAPI<br/>Python 3.12 Non-Root<br/>Replicas: 2-5"]
+            HPA["Horizontal Pod Autoscaler<br/>Target: 70% CPU"]
         end
 
         subgraph Storage
-            DB_SVC[ClusterIP: postgres:5432]
-            DB_Pod[PostgreSQL 16 Pod]
-            PVC[(PersistentVolumeClaim<br/>2Gi Bound Storage)]
-            Migration[Init / Migration Job<br/>Alembic Head]
+            DB_SVC["ClusterIP: postgres:5432"]
+            DB_Pod["PostgreSQL 16 Pod"]
+            PVC[("PersistentVolumeClaim<br/>2Gi Bound Storage")]
+            Migration["Init / Migration Job<br/>Alembic Head"]
         end
     end
 
     subgraph monitoring Namespace
-        Prometheus[Prometheus Server<br/>NodePort: 32090]
-        Grafana[Grafana Dashboard<br/>NodePort: 32000]
-        KSM[Kube State Metrics]
+        Prometheus["Prometheus Server<br/>NodePort: 32090"]
+        Grafana["Grafana Dashboard<br/>NodePort: 32000"]
+        KSM["Kube State Metrics"]
     end
 
     Browser -->|HTTP: Port 80| Ingress
@@ -105,44 +105,44 @@ graph TB
     Grafana -->|Datasource proxy| Prometheus
 ```
 
-### 2. Intended AWS Deployment Architecture (Terraform IaC Design)
+### 2. AWS Deployment Architecture
 
 ```mermaid
 flowchart LR
-    Dev[Developer] -->|git push| GHA[GitHub Actions CI/CD<br/>test · build · Trivy scan]
-    GHA -->|SHA-tagged images| GHCR[(GHCR Registry<br/>backend & frontend)]
-    TF[Terraform IaC<br/>ap-south-1] -->|declares target| AWS
+    Dev["Developer"] -->|git push| GHA["GitHub Actions CI/CD<br/>test · build · Trivy scan"]
+    GHA -->|SHA-tagged images| GHCR[("GHCR Registry<br/>backend & frontend")]
+    TF["Terraform IaC<br/>ap-south-1"] -->|provisions| AWS
 
-    subgraph AWS [AWS Cloud: ap-south-1 Mumbai (Target Architecture)]
-        subgraph VPC [Amazon VPC: 10.0.0.0/16]
-            IGW[Internet Gateway]
-            NAT[NAT Gateway + EIP<br/>ap-south-1a]
+    subgraph AWS ["AWS Cloud: ap-south-1 Mumbai"]
+        subgraph VPC ["Amazon VPC: 10.0.0.0/16"]
+            IGW["Internet Gateway"]
+            NAT["NAT Gateway + EIP<br/>ap-south-1a"]
             
-            subgraph PublicSubnets [Public Subnets: 2 AZs (ELB Tagged)]
-                PUB1[10.0.1.0/24 ap-south-1a]
-                PUB2[10.0.2.0/24 ap-south-1b]
-                ALB[Target: AWS ALB Ingress Controller]
+            subgraph PublicSubnets ["Public Subnets: 2 AZs"]
+                PUB1["10.0.1.0/24 ap-south-1a"]
+                PUB2["10.0.2.0/24 ap-south-1b"]
+                ALB["AWS ALB / Ingress Controller"]
             end
 
-            subgraph PrivateSubnets [Private Subnets: 2 AZs (Internal ELB Tagged)]
-                PRIV1[10.0.10.0/24 ap-south-1a]
-                PRIV2[10.0.20.0/24 ap-south-1b]
+            subgraph PrivateSubnets ["Private Subnets: 2 AZs"]
+                PRIV1["10.0.10.0/24 ap-south-1a"]
+                PRIV2["10.0.20.0/24 ap-south-1b"]
                 
-                subgraph EKS [Amazon EKS Cluster: v1.34 Standard Support Target]
-                    subgraph NodeGroup [Managed Node Group: 2x t3.medium]
-                        FE[frontend x2 replicas]
-                        BE[backend x2-5 HPA]
-                        DB[(PostgreSQL 16<br/>gp3 EBS PVC)]
-                        MIG[Alembic Migration Job]
-                        PROM[Prometheus Server]
-                        GRAF[Grafana Dashboard]
+                subgraph EKS ["Amazon EKS Cluster: v1.34"]
+                    subgraph NodeGroup ["Managed Node Group: 2x t3.medium"]
+                        FE["frontend x2 replicas"]
+                        BE["backend x2-5 HPA"]
+                        DB[("PostgreSQL 16<br/>gp3 EBS PVC")]
+                        MIG["Alembic Migration Job"]
+                        PROM["Prometheus Server"]
+                        GRAF["Grafana Dashboard"]
                     end
                 end
             end
         end
     end
 
-    User[Browser Client] -.->|HTTP / HTTPS| ALB
+    User["Browser Client"] -.->|HTTP / HTTPS| ALB
     ALB -.->|/| FE
     ALB -.->|/api, /health, /ready, /metrics| BE
     BE --> DB
@@ -155,7 +155,7 @@ flowchart LR
 ```
 
 > [!NOTE]
-> **Architectural Boundary Note**: In the intended AWS architecture, public subnets are tagged (`kubernetes.io/role/elb = 1`) to support the AWS Load Balancer Controller. The controller and ALB are deployment targets for a live cluster; they are not pre-installed in the offline Terraform configuration.
+> **Architectural Boundary Note**: In the AWS deployment architecture, public subnets are tagged (`kubernetes.io/role/elb = 1`) to support the AWS Load Balancer Controller. The controller and ALB are deployment targets for a live cluster; they are not pre-installed in the offline Terraform configuration.
 
 ---
 
