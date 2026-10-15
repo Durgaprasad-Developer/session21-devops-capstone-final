@@ -410,6 +410,12 @@ helm upgrade --install grafana grafana/grafana \
 - **Backend Process CPU & Memory**: CPU percentage and RSS memory bytes.
 - **Committed Verification**: [`docs/evidence/metrics_output.txt`](docs/evidence/metrics_output.txt), [`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png), and [`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png).
 
+<p align="center">
+  <img src="docs/screenshots/prometheus_targets_up.png" width="49%" alt="Prometheus Targets UP Scrape Status">
+  <img src="docs/screenshots/grafana_bookease_dashboard.png" width="49%" alt="Grafana Live Observability Dashboard">
+</p>
+<p align="center"><sub>Live Prometheus scrape targets (1/1 UP) and Grafana 6-panel monitoring dashboard.</sub></p>
+
 ---
 
 ## AWS Infrastructure Design — Terraform Validated; Live Deployment Deferred
@@ -460,8 +466,37 @@ Amazon EKS enforces a distinct pricing tier between **Standard Support** and **E
 > [!TIP]
 > **Extended Support Surcharge Avoidance**:
 > Targeting Kubernetes v1.34 under AWS Standard Support avoids approximately **$360/month** ($0.50/hour) in EKS Extended Support surcharges that AWS levies on deprecated Kubernetes versions (such as v1.30). Note that this represents avoided support-tier penalties, not guaranteed total savings, as total cloud expenditure depends on active runtime and resource usage.
->
-> For full teardown procedures, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+---
+
+## Teardown & Safe Cleanup Instructions
+
+To avoid lingering cloud charges or orphaned resources:
+
+### 1. Cloud Infrastructure Teardown (AWS EKS)
+```bash
+# Step 1: Remove Helm workloads first (releases Ingress ENIs, ALBs, and PVCs)
+helm uninstall bookease -n bookease
+helm uninstall grafana -n monitoring 2>/dev/null || true
+helm uninstall prometheus -n monitoring 2>/dev/null || true
+
+# Step 2: Destroy Terraform infrastructure cleanly
+cd terraform
+terraform destroy -auto-approve
+```
+
+> [!WARNING]
+> Always uninstall Helm releases before executing `terraform destroy`. If Kubernetes LoadBalancers or EBS PVCs are not deleted first, AWS will hold associated Network Interfaces and Security Groups, which will cause `terraform destroy` to fail on VPC deletion.
+
+### 2. Local Environment Teardown (Minikube / Docker Compose)
+```bash
+# Stop local Minikube cluster
+minikube stop
+
+# Stop Docker Compose stack
+# NOTE: The -v flag removes persistent volumes and permanently deletes local database data.
+docker compose down -v
+```
 
 ---
 
