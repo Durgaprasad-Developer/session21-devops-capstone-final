@@ -63,8 +63,10 @@ def ready():
 
 def seed_sample_data():
     """Insert sample data only if the tables are empty."""
-    db = SessionLocal()
+    db = None
     try:
+        models.Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
         if db.query(models.Doctor).count() > 0:
             return
 
@@ -151,9 +153,11 @@ def seed_sample_data():
         db.add_all(appointments)
         db.commit()
     except Exception:
-        db.rollback()
+        if db:
+            db.rollback()
     finally:
-        db.close()
+        if db:
+            db.close()
 
 
 # Startup handled by lifespan context manager above
