@@ -1,10 +1,9 @@
 # BookEase — Medical Appointment Booking Management System
 **Session 21 DevOps Final Capstone Project**
 
-**An enterprise healthcare scheduling platform where patients book appointments, doctor availability is enforced with concurrency conflict prevention, and the entire system is shipped through a production-style DevOps platform:** automated Pytest unit tests, multi-stage non-root containers, Trivy DevSecOps gates in GitHub Actions, SHA-tagged images in GHCR, Kubernetes Helm orchestration with HPA autoscaling, Prometheus & Grafana observability, and validated AWS Terraform infrastructure as code (EKS v1.34 Standard Support).
+**An outpatient medical scheduling platform demonstrating a complete DevOps lifecycle:** automated backend unit tests (Pytest on isolated SQLite), multi-stage non-root containers, automated DevSecOps pipeline gates in GitHub Actions, immutable SHA-tagged images published to GitHub Container Registry (GHCR), local Kubernetes orchestration via Helm with Horizontal Pod Autoscaling (HPA v2), Prometheus and Grafana observability, and validated AWS Terraform Infrastructure as Code (targeting EKS v1.34 Standard Support).
 
 [![CI/CD Pipeline](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml/badge.svg)](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml)
-[![Trivy Scan](https://img.shields.io/badge/Security-Trivy%200%20High%20CVEs-green)](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions)
 [![Docker](https://img.shields.io/badge/Containers-Non--Root%20Alpine-blue)](docker-compose.yml)
 [![Kubernetes](https://img.shields.io/badge/K8s-Helm%20%2B%20HPA%20v2-326CE5)](helm/bookease/)
 [![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)](monitoring/)
@@ -16,13 +15,13 @@
 
 ## Highlights
 
-- **Conflict-free appointment scheduling.** Validates doctor working hours and overlapping time slots; atomic database transactions prevent double-booking. The test suite exercises competing appointments and rejected invalid time ranges.
-- **Eight automated quality gates.** Pytest backend test suite (16 tests on SQLite), Vite frontend build check, Terraform HCL validation (offline `fmt`, `init -backend=false`, `validate`), Gitleaks secret scanning, Helm linting and template rendering, Docker Compose live smoke test, Trivy container vulnerability gate (`--exit-code 1` on HIGH/CRITICAL), and GHCR immutable SHA image publishing.
-- **Hardened non-root runtime.** Backend runs as unprivileged `appuser` (UID:GID 100:101); Frontend runs on `nginxinc/nginx-unprivileged:1.27-alpine` (UID 101). Root access is dropped across all application containers.
-- **Zero HIGH/CRITICAL CVEs.** Upstream vulnerabilities (including Starlette CVE-2025-62727) and outdated Alpine OS packages were remediated directly in code, ensuring clean vulnerability scans without security suppressions.
-- **Build once, deploy immutable bytes.** Each container image is built once in CI, scanned, tagged with the exact Git commit SHA, and published to GitHub Container Registry (GHCR). Deployments trace directly to the commit they originated from.
-- **Operability & Autoscaling.** Kubernetes HPA v2 scaled backend pods from 2 to 5 replicas under a live 35-worker load test surging CPU to 240%, stabilizing cleanly back to 2 replicas. Grafana dashboard features 6 populated panels tracking live requests (>6,600 recorded), p95/p99 latency, and error rates.
-- **Cost-optimized AWS Terraform IaC.** Amazon VPC (2 AZs, public & private subnets, NAT Gateway) and EKS control plane configured to **Kubernetes v1.34 Standard Support** (saving >$360/month over outdated v1.30 Extended Support surcharges). All HCL files validated offline; live cloud creation deferred to keep student cloud spend at $0.00.
+- **Conflict-free appointment scheduling.** Validates physician availability hours and overlapping time slots; atomic database transactions prevent double-booking. The test suite exercises conflicting slots, edge-case hours, and invalid time ranges.
+- **Automated CI/CD quality gates.** Automated GitHub Actions workflow checks backend tests, frontend build, Terraform HCL syntax/provider initialization, Gitleaks secrets scanning, Helm chart linting, Docker Compose integration smoke testing, Trivy container vulnerability scanning (`--exit-code 1` on HIGH/CRITICAL), and GHCR image publishing.
+- **Hardened non-root containers.** Backend runs as unprivileged `appuser` (UID:GID 100:101); frontend runs on `nginxinc/nginx-unprivileged:1.27-alpine` (UID 101). Root access is dropped across all application workloads.
+- **DevSecOps vulnerability controls.** Dependency CVEs (including Starlette CVE-2025-62727) remediated directly in code and base images, passing Trivy gates without suppressed findings.
+- **Build once, deploy immutable bytes.** Each container image is built in CI, scanned, tagged with the exact Git commit SHA, and published to GitHub Container Registry (GHCR). Deployments trace directly to source commits.
+- **Autoscaling & Observability.** Kubernetes HPA v2 scaled backend pods from 2 to 5 replicas under a simulated 35-worker load test surging CPU utilization to 240%, stabilizing cleanly back to 2 replicas. The Grafana dashboard tracks 6 panels covering active replicas, request throughput (>6,600 recorded during evaluation), p95/p99 latency, and error rates.
+- **AWS Infrastructure as Code.** Amazon VPC (2 AZs, public & private subnets, NAT Gateway) and EKS control plane configured to **Kubernetes v1.34 Standard Support** (avoiding ~$360/month in legacy EKS Extended Support surcharges). All HCL files validated offline; live AWS provisioning held at $0.00 spend per capstone guidelines.
 
 ---
 
@@ -106,30 +105,30 @@ graph TB
     Grafana -->|Datasource proxy| Prometheus
 ```
 
-### 2. Intended AWS Production Deployment Architecture (Terraform IaC Design)
+### 2. Intended AWS Deployment Architecture (Terraform IaC Design)
 
 ```mermaid
 flowchart LR
     Dev[Developer] -->|git push| GHA[GitHub Actions CI/CD<br/>test · build · Trivy scan]
     GHA -->|SHA-tagged images| GHCR[(GHCR Registry<br/>backend & frontend)]
-    TF[Terraform IaC<br/>ap-south-1] -->|declares| AWS
+    TF[Terraform IaC<br/>ap-south-1] -->|declares target| AWS
 
-    subgraph AWS [AWS Cloud: ap-south-1 Mumbai]
+    subgraph AWS [AWS Cloud: ap-south-1 Mumbai (Target Architecture)]
         subgraph VPC [Amazon VPC: 10.0.0.0/16]
             IGW[Internet Gateway]
             NAT[NAT Gateway + EIP<br/>ap-south-1a]
             
-            subgraph PublicSubnets [Public Subnets: 2 AZs]
+            subgraph PublicSubnets [Public Subnets: 2 AZs (ELB Tagged)]
                 PUB1[10.0.1.0/24 ap-south-1a]
                 PUB2[10.0.2.0/24 ap-south-1b]
-                ALB[AWS ALB / Ingress Controller]
+                ALB[Target: AWS ALB Ingress Controller]
             end
 
-            subgraph PrivateSubnets [Private Subnets: 2 AZs]
+            subgraph PrivateSubnets [Private Subnets: 2 AZs (Internal ELB Tagged)]
                 PRIV1[10.0.10.0/24 ap-south-1a]
                 PRIV2[10.0.20.0/24 ap-south-1b]
                 
-                subgraph EKS [Amazon EKS Cluster: v1.34 Standard Support]
+                subgraph EKS [Amazon EKS Cluster: v1.34 Standard Support Target]
                     subgraph NodeGroup [Managed Node Group: 2x t3.medium]
                         FE[frontend x2 replicas]
                         BE[backend x2-5 HPA]
@@ -143,17 +142,20 @@ flowchart LR
         end
     end
 
-    User[Browser Client] -->|HTTP / HTTPS| ALB
-    ALB -->|/| FE
-    ALB -->|/api, /health, /ready, /metrics| BE
+    User[Browser Client] -.->|HTTP / HTTPS| ALB
+    ALB -.->|/| FE
+    ALB -.->|/api, /health, /ready, /metrics| BE
     BE --> DB
     MIG -.->|apply schema| DB
-    PROM -->|scrape /metrics| BE
-    GRAF -->|query| PROM
+    PROM -.->|scrape /metrics| BE
+    GRAF -.->|query| PROM
     NodeGroup -.->|pull images: commit SHA| GHCR
     NodeGroup -.->|outbound egress| NAT
     NAT --> IGW
 ```
+
+> [!NOTE]
+> **Architectural Boundary Note**: In the intended AWS architecture, public subnets are tagged (`kubernetes.io/role/elb = 1`) to support the AWS Load Balancer Controller. The controller and ALB are deployment targets for a live cluster; they are not pre-installed in the offline Terraform configuration.
 
 ---
 
@@ -167,10 +169,10 @@ flowchart LR
 | **Testing** | Pytest 8.x, SQLite in-memory | Isolated test suite with zero database dependencies |
 | **Containers** | Docker (multi-stage, non-root), Docker Compose | Hardened local runtime |
 | **CI/CD** | GitHub Actions | Automated build, test, and container publishing |
-| **Security** | Trivy Container Security Scanner | CVE vulnerability gates in CI (`exit-code: 1`) |
+| **Security** | Trivy Container Scanner, Gitleaks | Automated CVE vulnerability & secret scanning gates |
 | **Registry** | GitHub Container Registry (GHCR) | Public image repository with Git commit SHA tags |
 | **IaC** | Terraform (v1.9.8, AWS Provider ~> 5.50) | Declarative VPC, Subnets, IGW/NAT, and EKS Cluster |
-| **Orchestration** | Kubernetes v1.34 (EKS Standard) / Minikube v1.30, Helm v3 | Multi-replica deployments, Ingress, and persistence |
+| **Orchestration** | Kubernetes v1.30 (on Minikube) / EKS v1.34 (Target), Helm v3 | Multi-replica deployments, Ingress, and persistence |
 | **Autoscaling**| Kubernetes HPA v2 (Metrics Server) | Automatic horizontal scaling based on CPU |
 | **Monitoring** | Prometheus, Grafana, Kube State Metrics | Live metric scraping, alerts, and dashboards |
 
@@ -181,7 +183,7 @@ flowchart LR
 ```text
 session21-devops-capstone-final/
 ├── .github/workflows/
-│   └── ci.yml                     # 4-stage GitHub Actions CI/CD + Trivy DevSecOps
+│   └── ci.yml                     # 8-job GitHub Actions CI/CD + DevSecOps pipeline
 ├── backend/
 │   ├── alembic/                   # Database migrations (001_initial_schema.py)
 │   ├── app/                       # FastAPI application (routers, models, schemas, crud)
@@ -197,7 +199,7 @@ session21-devops-capstone-final/
 ├── k8s/
 │   └── namespace.yaml             # Dedicated bookease namespace manifest
 ├── helm/
-│   └── bookease/                  # Production Helm chart (Deployments, Ingress, HPA, PVC)
+│   └── bookease/                  # BookEase Helm chart (Deployments, Ingress, HPA, PVC)
 ├── monitoring/
 │   ├── dashboards/                # Custom Grafana dashboard JSON (BookEase Observability)
 │   ├── prometheus-values.yaml     # Prometheus Helm values & scrape configurations
@@ -208,17 +210,19 @@ session21-devops-capstone-final/
 │   ├── terraform.tfvars.example   # Safe configuration example (no credentials)
 │   └── README.md                  # Infrastructure guide & deployment instructions
 ├── docs/
+│   ├── API.md                     # Complete REST API reference and payload catalog
+│   ├── DEPLOYMENT.md              # Extended deployment, EKS guide & cost details
 │   ├── evidence/                  # Real command outputs (pytest, build, terraform, helm)
 │   ├── presentation/              # PowerPoint presentation deck (.pptx)
 │   ├── screenshots/               # Verified evidence screenshots (App, Targets, Grafana)
 │   ├── PRESENTATION.md            # Slide-by-slide transcript & speaker notes
 │   ├── DEMO_VIDEO_SCRIPT.md       # Scene-by-scene 5-7 minute video recording script
 │   ├── DEMO.md                    # 5-minute presentation walkthrough guide
-│   └── FINAL_AUDIT.md             # Complete 100-point rubric verification audit
+│   └── FINAL_AUDIT.md             # Complete rubric verification audit
 ├── demo/
 │   └── BookEase_DevOps_Capstone_Presentation.pptx # Mirror copy of presentation deck
 ├── scripts/
-│   └── generate_presentation.py   # Python script to build presentation deck
+│   └── generate_presentation.py   # Script to generate presentation deck
 ├── docker-compose.yml             # Local three-service development stack
 ├── .env.example                   # Environment configuration template
 └── README.md                      # Project documentation
@@ -230,8 +234,8 @@ session21-devops-capstone-final/
 
 ### Prerequisites
 - Docker Engine 24+ & Docker Compose v2+
-- Python 3.12+ (for local backend development)
-- Node.js 20+ (for local frontend development)
+- Python 3.12+ (optional, for local virtualenv development)
+- Node.js 20+ (optional, for local frontend development)
 
 ### Start Full Stack
 ```bash
@@ -244,42 +248,30 @@ docker compose up --build -d
 
 | URL | Component | Purpose |
 |---|---|---|
-| `http://localhost:3000` | Frontend SPA | React user interface |
-| `http://localhost:8000/docs` | Swagger UI | Interactive API documentation |
+| `http://localhost:3000` | Frontend SPA | React clinical booking interface |
+| `http://localhost:8000/docs` | Swagger UI | Interactive OpenAPI documentation |
 | `http://localhost:8000/health` | Liveness Probe | Lightweight container healthcheck |
 | `http://localhost:8000/ready` | Readiness Probe | Validates PostgreSQL database connectivity |
 | `http://localhost:8000/metrics` | Prometheus Metrics | Machine-readable application metrics |
 
+> [!NOTE]
+> For complete endpoint schemas, payload specifications, and query parameters, see [docs/API.md](docs/API.md).
+
 ### Stop Docker Compose
 ```bash
+# Stop containers and networks
+docker compose down
+
+# To also remove persistent volumes:
+# CAUTION: The -v flag permanently deletes local PostgreSQL database volumes and data.
 docker compose down -v
 ```
 
 ---
 
-## REST API Reference
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Liveness check returning `{"status":"healthy"}` |
-| `GET` | `/ready` | Readiness check (executes `SELECT 1` on database) |
-| `GET` | `/metrics` | Prometheus metrics scrape endpoint |
-| `GET` | `/api/appointments` | List all appointments with patient and doctor details |
-| `POST`| `/api/appointments` | Create appointment (validates working hours & overlaps) |
-| `GET` | `/api/appointments/{id}` | Get appointment by ID |
-| `PUT` | `/api/appointments/{id}` | Update status (`scheduled`, `completed`, `cancelled`) |
-| `DELETE`| `/api/appointments/{id}`| Cancel / remove appointment |
-| `GET` | `/api/appointments/stats` | Dashboard statistics (total, today, completed, cancelled) |
-| `GET` | `/api/doctors` | List doctors with speciality and availability window |
-| `POST`| `/api/doctors` | Add doctor profile |
-| `GET` | `/api/patients` | List registered patients |
-| `POST`| `/api/patients` | Register new patient |
-
----
-
 ## Automated Testing & Code Quality
 
-The backend includes 16 automated tests covering appointment scheduling, doctor availability, patient records, conflict detection, and health checks. Tests run against an isolated in-memory SQLite database via `conftest.py` fixtures:
+The backend includes 16 automated tests covering appointment booking, working-hour constraints, patient management, concurrent conflict detection, and health probes. Tests execute against an isolated in-memory SQLite database via `conftest.py` fixtures:
 
 ```bash
 cd backend
@@ -288,27 +280,29 @@ pip install -r requirements.txt
 pytest -v
 ```
 
-- **Actual Result**: `16 passed, 0 failed in 1.13s`
+- **Actual Result**: `16 passed in 0.80s`
 - **Committed Output**: [`docs/evidence/pytest_output.txt`](docs/evidence/pytest_output.txt)
-- **Frontend Production Build**: `npm run build` succeeds in 616ms ([`docs/evidence/frontend_build.txt`](docs/evidence/frontend_build.txt)).
+- **Frontend Production Build**: `npm run build` succeeds cleanly in under 1 second ([`docs/evidence/frontend_build.txt`](docs/evidence/frontend_build.txt)).
 
 ---
 
 ## CI/CD Pipeline & DevSecOps Gates
 
-The automated pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) triggers on every push to `main` across eight automated gates:
+The automated pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) triggers on every push and pull request to `main`. 
+
+The pipeline incorporates eight automated jobs:
 
 ```text
 git push main
    │
-   ├──► 1. test-backend (Pytest 16/16 + Alembic SQLite) ──► Fails build on test error
-   ├──► 2. build-frontend (Vite compilation) ──────────────► Catches static syntax/bundle bugs
+   ├──► 1. test-backend (Pytest 16/16 on isolated SQLite) ─► Fails build on test regression
+   ├──► 2. build-frontend (Vite compilation) ──────────────► Catches syntax and bundling bugs
    ├──► 3. validate-terraform (fmt, init, validate) ────────► Enforces AWS HCL syntax ($0 cloud spend)
    ├──► 4. scan-secrets (Gitleaks repository scan) ─────────► Blocks leaked credentials & API tokens
    ├──► 5. lint-helm (helm lint & helm template) ───────────► Validates Kubernetes chart manifests
    │
-   ▼ (requires all 5 upstream quality gates to pass)
-6. test-docker-compose (Live integration smoke test) ──────► Spins up stack, tests /health & /ready, downs -v
+   ▼ (requires upstream quality gates to pass)
+6. test-docker-compose (Integration smoke test) ───────────► Verifies /health & /ready probes, downs -v
    │
    ▼ (requires compose smoke test to pass)
 7. build-and-scan (Trivy scanner on non-root images) ───────► Enforces exit-code 1 on HIGH/CRITICAL
@@ -317,13 +311,15 @@ git push main
 8. publish (Push to GHCR) ──────────────────────────────────► Tags immutable Git commit SHA + latest
 ```
 
+- **Pipeline Evolution**: Baseline pipeline runs originally executed 4 core jobs (`test-backend`, `build-frontend`, `build-and-scan`, `publish`); this was subsequently expanded to 8 jobs to incorporate offline Terraform validation, Gitleaks secret scanning, Helm chart linting, and Docker Compose integration smoke testing.
+- **Workflow Link**: Inspect live runs on [GitHub Actions CI/CD Pipeline](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml).
 - **Gitleaks Secret Scanning**: Enforces zero credentials, private keys, or cloud tokens committed to git ([`docs/evidence/gitleaks_output.txt`](docs/evidence/gitleaks_output.txt)).
 - **Terraform IaC Gate**: Runs `fmt -check`, `init -backend=false`, and `validate` offline without requiring AWS credentials ([`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)).
 - **Helm Manifest Validation**: Runs `helm lint` and `helm template` dry-run renders before any container build ([`docs/evidence/helm_lint.txt`](docs/evidence/helm_lint.txt)).
-- **Docker Compose Smoke Gate**: Spins up live backend, frontend, and PostgreSQL services, waits for database readiness (`/ready`), checks application health (`/health`), and tears down with `-v` ([`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)).
+- **Docker Compose Smoke Gate**: Spins up live backend, frontend, and PostgreSQL services, verifies `/ready` and `/health`, and cleanly tears down ([`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)).
 - **Trivy Vulnerability Policy**: Strict security gate with `exit-code: 1` and `severity: 'CRITICAL,HIGH'`.
-- **Remediated Vulnerabilities**: Patched Starlette CVE-2025-62727 by updating FastAPI; OS libraries updated via Alpine packages. Scans pass with **zero HIGH and zero CRITICAL findings**.
-- **Immutable SHA Tags**: Published images in GitHub Container Registry:
+- **Remediated Vulnerabilities**: Upstream Starlette CVE-2025-62727 patched via FastAPI update; OS libraries updated via Alpine packages.
+- **Immutable SHA Tags**: Published container images in GitHub Container Registry:
   - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-backend:<commit-sha>`
   - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-frontend:<commit-sha>`
 
@@ -331,7 +327,7 @@ git push main
 
 ## Kubernetes & Helm Deployment (Local Minikube)
 
-### 1. Prerequisites & Cluster Setup
+### 1. Cluster Setup (Kubernetes v1.30 on Minikube)
 ```bash
 minikube start --driver=docker --cpus=4 --memory=8192
 minikube addons enable ingress
@@ -356,15 +352,15 @@ kubectl get pods,svc,hpa,ingress -n bookease
 - **Backend**: 2/2 replicas running as non-root `appuser:100:101`.
 - **Frontend**: 2/2 replicas running as non-root `nginx:100:102`.
 - **PostgreSQL**: Stateful workload bound to 2Gi PVC (`bookease-postgres-data`).
-- **Migration Job**: Kubernetes Batch Job executed `alembic upgrade head` before traffic served.
-- **Ingress**: `http://192.168.49.2/` routes traffic cleanly.
+- **Migration Job**: Kubernetes Batch Job executed `alembic upgrade head` before serving traffic.
+- **Ingress**: `http://192.168.49.2/` routes traffic cleanly across services.
 - **Committed Verification**: [`docs/evidence/k8s_bookease_status.txt`](docs/evidence/k8s_bookease_status.txt) and [`docs/evidence/helm_lint.txt`](docs/evidence/helm_lint.txt).
 
-### 4. Horizontal Pod Autoscaling (HPA v2) Live Verification
+### 4. Horizontal Pod Autoscaling (HPA v2) Verification
 - **Target**: Average CPU utilization `70%`.
 - **Range**: Min `2`, Max `5` replicas.
-- **Live Stress Test**: Hammering `/api/doctors` with 35 concurrent workers surged CPU utilization to **240%**.
-- **Autoscaling Response**: HPA scaled backend pods from **2 to 4**, and then to **5 replicas** (`maxReplicas`). After load stopped, pods stabilized back to 2 replicas.
+- **Live Stress Test**: Stressing `/api/doctors` with 35 concurrent workers surged CPU utilization to **240%**.
+- **Autoscaling Response**: HPA scaled backend pods from **2 to 4**, and then to **5 replicas** (`maxReplicas`). Following load termination, pods stabilized back to 2 replicas.
 
 ---
 
@@ -395,11 +391,15 @@ helm upgrade --install grafana grafana/grafana \
   -n monitoring
 ```
 
-### Accessing Dashboards
-| Component | Local Minikube URL | Port-Forward Alternative | Credentials |
+### Accessing Dashboards & Credential Security
+| Component | Local Minikube URL | Port-Forward Alternative | Authentication |
 |---|---|---|---|
-| **Prometheus UI** | `http://192.168.49.2:32090` | `kubectl port-forward -n monitoring svc/prometheus-server 9090:9090` | None |
-| **Grafana UI** | `http://192.168.49.2:32000` | `kubectl port-forward -n monitoring svc/grafana 3000:80` | Local default: `admin` (configure via Kubernetes Secret in production) |
+| **Prometheus UI** | `http://192.168.49.2:32090` | `kubectl port-forward -n monitoring svc/prometheus-server 9090:9090` | None (internal scrape engine) |
+| **Grafana UI** | `http://192.168.49.2:32000` | `kubectl port-forward -n monitoring svc/grafana 3000:80` | Configured via Kubernetes Secret or deployment parameter |
+
+> [!IMPORTANT]
+> **Grafana Credential Security**:
+> In accordance with DevSecOps practices, Grafana admin passwords should be supplied dynamically via `--set adminPassword="$GRAFANA_ADMIN_PASSWORD"` or retrieved from an existing Kubernetes Secret (`admin.existingSecret`). Default passwords should never be committed into repository configuration files.
 
 ### Verified Dashboard Panels
 - **Active Backend Replicas**: Live count of healthy pods (`count(up{job="bookease-backend-pods"} == 1)`).
@@ -408,14 +408,13 @@ helm upgrade --install grafana grafana/grafana \
 - **Request Latency (p95 & p99)**: Histograms calculated from bucket metrics.
 - **Request Rate by Endpoint (req/s)**: Route-specific throughput.
 - **Backend Process CPU & Memory**: CPU percentage and RSS memory bytes.
-- **Committed Scrape Output**: [`docs/evidence/metrics_output.txt`](docs/evidence/metrics_output.txt)
-- **Verified Screenshots**: [`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png) and [`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png).
+- **Committed Verification**: [`docs/evidence/metrics_output.txt`](docs/evidence/metrics_output.txt), [`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png), and [`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png).
 
 ---
 
-## Infrastructure as Code (Terraform AWS EKS)
+## AWS Infrastructure Design — Terraform Validated; Live Deployment Deferred
 
-The `terraform/` directory defines a production-ready, modular AWS cloud infrastructure designed for high availability and strict cost optimization:
+The `terraform/` directory defines an AWS cloud infrastructure designed for high availability and strict cost optimization:
 
 ### Architecture Summary
 - **Amazon VPC**: Custom CIDR `10.0.0.0/16` with DNS hostnames and DNS support enabled in region `ap-south-1` (Mumbai).
@@ -442,117 +441,57 @@ terraform validate
 - **Initialization**: `terraform init -backend=false` successfully resolves provider `hashicorp/aws v5.100.0`.
 - **Validation Output**: `Success! The configuration is valid.` ([`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)).
 
----
-
-## Deploying BookEase to EKS (Using Existing Artifacts)
-
-BookEase is pre-packaged and ready to run on EKS using the verified GHCR images and Helm chart:
-
-### 1. Connect `kubectl` to EKS Cluster
-```bash
-aws eks update-kubeconfig --region ap-south-1 --name bookease-eks-cluster
-kubectl get nodes
-```
-
-### 2. Apply Namespace Manifest
-```bash
-kubectl apply -f k8s/namespace.yaml
-```
-
-### 3. Deploy Application via Helm Chart
-Our existing Helm chart (`helm/bookease/values.yaml`) directly pulls verified images tagged with the Git commit SHA from GHCR:
-- `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-backend:2be5d623eaea9c958783803ba3d8a8b89e7e0a79`
-- `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-frontend:2be5d623eaea9c958783803ba3d8a8b89e7e0a79`
-
-```bash
-helm upgrade --install bookease ./helm/bookease \
-  --namespace bookease \
-  --create-namespace \
-  --set postgresql.persistence.storageClass="gp3"
-```
-
-### 4. Verify Cloud Workloads
-```bash
-kubectl get pods,svc,ingress,hpa -n bookease
-```
-*Expected Result*: 2 frontend pods, 2 backend pods (auto-scalable to 5 via HPA), and 1 PostgreSQL pod backed by an AWS gp3 EBS volume.
+> [!IMPORTANT]
+> **Validation Boundary & Live Provisioning Status**:
+> Offline Terraform validation (`fmt`, `init`, `validate`) confirms the syntax, structure, and provider configurations are 100% correct. However, **active AWS provisioning (`terraform apply`), live cloud deployment, running EKS workloads, and `terraform destroy` were deferred** in accordance with instructor guidelines to maintain student cloud expenditure at **$0.00**. Detailed instructions for executing an authorized cloud deployment are documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) and [terraform/README.md](terraform/README.md).
 
 ---
 
-## Cost Comparison & Lifecycle Analysis
+## Cost Comparison & Lifecycle Assumptions
 
 Amazon EKS enforces a distinct pricing tier between **Standard Support** and **Extended Support**:
 
 | Deployment Mode | Infrastructure Configuration | Daily Cost | Monthly Estimate | Notes & Rationale |
 |---|---|---|---|---|
-| **Local Minikube** | Docker engine on local workstation | **$0.00** | **$0.00** | **100% Verified live**. Zero cloud charges. All app, HPA, and monitoring requirements proven. |
-| **AWS EKS Standard (v1.34)** | EKS control plane ($0.10/hr) + 2x `t3.medium` ($0.083/hr) + 1 NAT GW ($0.045/hr) + 40GB gp3 | **~$5.60** | **~$168.00** | **Our configured IaC target**. Standard support active through Dec 2026. Zero support surcharges. |
-| **AWS EKS Extended (v1.30)** | Outdated control plane ($0.60/hr surcharge) + 2x `t3.medium` + NAT GW | **~$17.60** | **~$528.00** | Incurs an additional **$0.50/hour Extended Support surcharge** (~$360/mo penalty). |
+| **Local Minikube** | Docker engine on local workstation | **$0.00** | **$0.00** | **Verified live**. Zero cloud charges. All app, HPA, and monitoring requirements proven. |
+| **AWS EKS Standard (v1.34)** | EKS control plane ($0.10/hr) + 2x `t3.medium` ($0.083/hr) + 1 NAT GW ($0.045/hr) + 40GB gp3 | **~$5.60** | **~$168.00** | **Our configured IaC target**. Standard support active through Dec 2026. Avoids extended support surcharges. |
+| **AWS EKS Extended (v1.30)** | Deprecated control plane ($0.60/hr surcharge) + 2x `t3.medium` + NAT GW | **~$17.60** | **~$528.00** | Incurs an additional **$0.50/hour Extended Support surcharge** (~$360/mo support penalty). |
 
 > [!TIP]
-> **Why EKS v1.34 Was Selected**:
-> By updating from previously configured version 1.30 to version 1.34 under AWS Standard Support, the infrastructure configuration saves **>$360 per month** in unnecessary AWS extended support surcharges while maintaining full Kubernetes API compatibility.
-> 
-> **Why Live AWS Apply is Kept at $0.00**:
-> As directed by instructor guidance, live cloud provisioning is kept deferred until explicit student budget authorization is granted, preventing inadvertent personal cloud charges. The infrastructure code is 100% validated offline.
+> **Extended Support Surcharge Avoidance**:
+> Targeting Kubernetes v1.34 under AWS Standard Support avoids approximately **$360/month** ($0.50/hour) in EKS Extended Support surcharges that AWS levies on deprecated Kubernetes versions (such as v1.30). Note that this represents avoided support-tier penalties, not guaranteed total savings, as total cloud expenditure depends on active runtime and resource usage.
+>
+> For full teardown procedures, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ---
 
-## Teardown & Safe Cleanup Instructions
+## Capstone Rubric Matrix (M1–M10)
 
-To avoid lingering cloud charges or orphaned resources when testing on AWS:
-
-### 1. Cloud Infrastructure Teardown (AWS EKS)
-```bash
-# Step 1: Remove Helm workloads first (releases ALBs, Ingress ENIs, and PVCs)
-helm uninstall bookease -n bookease
-helm uninstall grafana -n monitoring 2>/dev/null || true
-helm uninstall prometheus -n monitoring 2>/dev/null || true
-
-# Step 2: Destroy Terraform infrastructure cleanly
-cd terraform
-terraform destroy -auto-approve
-```
-
-> [!WARNING]
-> Always uninstall Helm releases before executing `terraform destroy`. If Kubernetes LoadBalancers or EBS PVCs are not deleted first, AWS will hold associated Network Interfaces and Security Groups, which will cause `terraform destroy` to fail on VPC deletion.
-
-### 2. Local Environment Teardown (Minikube / Docker Compose)
-```bash
-# Stop local Kubernetes cluster
-minikube stop
-
-# Or clean local Docker Compose stack
-docker compose down -v
-```
-
----
-
-## Capstone Rubric Map (M1–M10)
-
-This matrix maps each module of the Capstone Rubric (`projectDescriptionandGrading.md`) directly to its verifiable implementation, command, and artifact in this repository:
+This matrix maps each module of the Capstone Rubric (`projectDescriptionandGrading.md`) directly to its implementation files, verification commands, and proof artifacts in this repository:
 
 | Module | Topic | Pts | Status | Repository Evidence & Verification Command | Verified Evidence Artifact |
 |---|---|---|---|---|---|
-| **M1** | Application Architecture | 10 | **PASS (10/10)** | `backend/app/main.py`, `routers/`, `alembic/`, `frontend/`<br>`curl -s http://192.168.49.2/health` | [`docs/screenshots/bookease_dashboard.png`](docs/screenshots/bookease_dashboard.png)<br>[`docs/screenshots/fastapi_swagger_docs.png`](docs/screenshots/fastapi_swagger_docs.png)<br>[`docs/screenshots/appointments_page.png`](docs/screenshots/appointments_page.png) |
-| **M2** | Testing & Code Quality | 10 | **PASS (10/10)** | `backend/tests/` (16 unit tests, SQLite test DB)<br>`pytest -v` (16 passed in 1.13s) | [`docs/evidence/pytest_output.txt`](docs/evidence/pytest_output.txt)<br>[`docs/evidence/frontend_build.txt`](docs/evidence/frontend_build.txt) |
-| **M3** | Git & GitHub Hygiene | 5 | **PASS (5/5)** | Public repo, 12+ semantic commits, `.gitignore`<br>`git log --oneline` | [`docs/evidence/git_commit_history.txt`](docs/evidence/git_commit_history.txt) |
-| **M4** | Docker & Compose | 10 | **PASS (10/10)** | `backend/Dockerfile` (non-root `appuser`), `frontend/Dockerfile` (multi-stage, unprivileged Nginx)<br>`docker compose ps` | [`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)<br>[`docs/evidence/docker_compose_status.txt`](docs/evidence/docker_compose_status.txt) |
-| **M5** | CI/CD Pipeline | 15 | **PASS (15/15)** | `.github/workflows/ci.yml` (8-stage pipeline: Pytest, Vite, Terraform, Gitleaks, Helm, Compose smoke test, Trivy, GHCR publish)<br>Triggers on push to `main`, pushes SHA-tagged images | [GitHub Actions Workflow](.github/workflows/ci.yml)<br>[`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt) |
-| **M6** | DevSecOps & Security | 5 | **PASS (5/5)** | `aquasecurity/trivy-action` (`exit-code: 1`, `CRITICAL,HIGH`) + Gitleaks secret scanning<br>Zero High/Critical CVEs, zero leaks | [`docs/evidence/gitleaks_output.txt`](docs/evidence/gitleaks_output.txt)<br>Clean CI scan gate |
-| **M7** | Terraform AWS IaC | 15 | **PARTIAL (5/15)** | `terraform/` (VPC, 4 subnets, NAT, EKS v1.34, Add-ons, Nodes)<br>`terraform validate` (Success; live apply deferred for $0 spend) | [`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)<br>`terraform/` HCL codebase |
-| **M8** | Kubernetes & Helm | 15 | **PASS (15/15)** | `helm/bookease/` (12 templates, HPA v2 2→5 replicas, Ingress)<br>`kubectl get pods,svc,hpa -n bookease` | [`docs/evidence/k8s_bookease_status.txt`](docs/evidence/k8s_bookease_status.txt)<br>[`docs/screenshots/ingress_application.png`](docs/screenshots/ingress_application.png) |
-| **M9** | Observability | 10 | **PASS (10/10)** | FastAPI `/metrics`, Prometheus server (UP), Grafana dashboard (6 live panels)<br>`curl http://192.168.49.2:32090/api/v1/targets` | [`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png)<br>[`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png) |
-| **M10**| Presentation & Docs | 5 | **PASS (5/5)** | `README.md`, `docs/DEMO.md`, PowerPoint presentation, video script | [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)<br>[`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md) |
-| **Total** | | **100** | | **Evaluated Verified Score: 90 / 100** | Complete Audit: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md) |
+| **M1** | Application Architecture | 10 | **Verified** | `backend/app/main.py`, `routers/`, `alembic/`, `frontend/`<br>`curl -s http://192.168.49.2/health` | [`docs/screenshots/bookease_dashboard.png`](docs/screenshots/bookease_dashboard.png)<br>[`docs/screenshots/fastapi_swagger_docs.png`](docs/screenshots/fastapi_swagger_docs.png)<br>[`docs/API.md`](docs/API.md) |
+| **M2** | Testing & Code Quality | 10 | **Verified** | `backend/tests/` (16 unit tests on isolated SQLite DB)<br>`pytest -v` (16 passed in 0.80s) | [`docs/evidence/pytest_output.txt`](docs/evidence/pytest_output.txt)<br>[`docs/evidence/frontend_build.txt`](docs/evidence/frontend_build.txt) |
+| **M3** | Git & GitHub Hygiene | 5 | **Verified** | Public repo, 15+ semantic commits, `.gitignore`<br>`git log --oneline` | [`docs/evidence/git_commit_history.txt`](docs/evidence/git_commit_history.txt)<br>[`docs/evidence/gitleaks_output.txt`](docs/evidence/gitleaks_output.txt) |
+| **M4** | Docker & Compose | 10 | **Verified** | `backend/Dockerfile` (non-root `appuser`), `frontend/Dockerfile` (unprivileged Nginx)<br>`docker compose ps` | [`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)<br>[`docs/evidence/docker_compose_status.txt`](docs/evidence/docker_compose_status.txt) |
+| **M5** | CI/CD Pipeline | 15 | **Verified** | `.github/workflows/ci.yml` (8 automated jobs, SHA-tagged image publishing to GHCR)<br>Triggers on push/PR to `main` | [GitHub Actions Workflow](.github/workflows/ci.yml)<br>[Workflow Runs](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml) |
+| **M6** | DevSecOps & Security | 5 | **Verified** | `aquasecurity/trivy-action` (`exit-code: 1`, `CRITICAL,HIGH`) + Gitleaks secret scanning<br>Remediated Starlette CVE-2025-62727, zero credential leaks | [`docs/evidence/gitleaks_output.txt`](docs/evidence/gitleaks_output.txt)<br>[CI Trivy Gate](.github/workflows/ci.yml) |
+| **M7** | Terraform AWS IaC | 15 | **Partial** | `terraform/` (VPC, 4 subnets, NAT, EKS v1.34, Add-ons, Node Group)<br>`terraform validate` (Success; live cloud apply deferred for $0 spend) | [`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)<br>[`terraform/README.md`](terraform/README.md) |
+| **M8** | Kubernetes & Helm | 15 | **Verified** | `helm/bookease/` (12 templates, HPA v2 2→5 replicas, Ingress)<br>`kubectl get pods,svc,hpa -n bookease` (on local Minikube K8s v1.30) | [`docs/evidence/k8s_bookease_status.txt`](docs/evidence/k8s_bookease_status.txt)<br>[`docs/screenshots/ingress_application.png`](docs/screenshots/ingress_application.png) |
+| **M9** | Observability | 10 | **Verified** | FastAPI `/metrics`, Prometheus server (UP), Grafana dashboard (6 live panels)<br>`curl http://192.168.49.2:32090/api/v1/targets` | [`docs/evidence/metrics_output.txt`](docs/evidence/metrics_output.txt)<br>[`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png)<br>[`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png) |
+| **M10**| Presentation & Docs | 5 | **Partial** | Complete presentation deck (`.pptx`), speaker notes, and video recording script.<br>*Note: Slide deck & script completed; video recording pending.* | [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)<br>[`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md) |
+| **Total** | | **100** | | Full grading verification audit | Detailed Review: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md) |
 
 ---
 
-## Presentation & Demonstration Deliverables
+## Final Submission Deliverables & Links
 
-- **PowerPoint Presentation File (.pptx)**: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx) (or [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](demo/BookEase_DevOps_Capstone_Presentation.pptx))
+- **PowerPoint Presentation Deck (.pptx)**: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx) (and mirror in [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](demo/BookEase_DevOps_Capstone_Presentation.pptx))
 - **Slide-by-Slide Transcript & Speaker Notes**: [`docs/PRESENTATION.md`](docs/PRESENTATION.md)
 - **Demo Video Script & Shot List (5–7 min)**: [`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md)
-- **Full Grading Audit & Proof**: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md)
 - **Presentation Walkthrough Guide**: [`docs/DEMO.md`](docs/DEMO.md)
-- **Demo Video Status**: Script, shot list, and cues are complete. Video recording is ready to be captured following the script.
+- **REST API Specification**: [`docs/API.md`](docs/API.md)
+- **Extended Deployment & Teardown Guide**: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- **Complete Rubric Verification Audit**: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md)
+- **Demo Video Recording**: *Pending* (Script and scene-by-scene cues prepared; recording to be completed following [docs/DEMO_VIDEO_SCRIPT.md](docs/DEMO_VIDEO_SCRIPT.md)).
