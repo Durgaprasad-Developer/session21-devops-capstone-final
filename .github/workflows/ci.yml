@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 jobs:
-  # ── 1. Backend Automated Tests ───────────────────────────────────────────────
+  # ── 1. Backend Automated Tests (M2) ─────────────────────────────────────────
   test-backend:
     name: Backend Pytest Suite
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
         run: |
           pytest -v --durations=10
 
-  # ── 2. Frontend Build Verification ──────────────────────────────────────────
+  # ── 2. Frontend Build Verification (M1, M5) ──────────────────────────────────
   build-frontend:
     name: Frontend Build Check
     runs-on: ubuntu-latest
@@ -67,10 +67,116 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-  # ── 3. Docker Image Build & Trivy Vulnerability Scan (DevSecOps) ─────────────
+  # ── 3. Terraform IaC Offline Validation (M7) ─────────────────────────────────
+  validate-terraform:
+    name: Terraform IaC Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./terraform
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Check HCL formatting
+        run: terraform fmt -check
+
+      - name: Initialize Terraform (Offline / No Backend)
+        run: terraform init -backend=false
+
+      - name: Validate configuration syntax & providers
+        run: terraform validate
+
+  # ── 4. Secret Scanning Gate (M3, M6) ────────────────────────────────────────
+  scan-secrets:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Secret Scanner
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
+
+  # ── 5. Helm Chart Linting & Templates (M8) ───────────────────────────────────
+  lint-helm:
+    name: Helm Chart Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Lint BookEase Helm Chart
+        run: helm lint ./helm/bookease
+
+      - name: Render Helm templates test
+        run: helm template bookease ./helm/bookease > /dev/null
+
+  # ── 6. Docker Compose Integration & Smoke Test (M4) ─────────────────────────
+  test-docker-compose:
+    name: Docker Compose Smoke Test
+    needs: [test-backend, build-frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare environment file
+        run: cp .env.example .env
+
+      - name: Build & start stack
+        run: docker compose up --build -d
+
+      - name: Wait for backend readiness & database connectivity
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8000/ready | grep -q '"database":"connected"'; then
+              echo "Backend and database are READY!"
+              break
+            fi
+            echo "Waiting for services to become healthy... ($i/30)"
+            sleep 2
+          done
+
+      - name: Validate health probes
+        run: |
+          curl -f http://localhost:8000/health
+          curl -f http://localhost:8000/ready
+
+      - name: Validate frontend delivery
+        run: |
+          curl -f http://localhost:3000
+
+      - name: Check container statuses
+        run: docker compose ps
+
+      - name: Clean up stack
+        if: always()
+        run: docker compose down -v
+
+  # ── 7. Docker Image Build & Trivy Vulnerability Scan (M4, M6) ────────────────
   build-and-scan:
     name: Build & Scan Docker Images
-    needs: [test-backend, build-frontend]
+    needs: [test-backend, build-frontend, validate-terraform, scan-secrets, lint-helm]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -136,10 +242,10 @@ jobs:
           path: /tmp/images/
           retention-days: 1
 
-  # ── 4. Publish Images to GitHub Container Registry (GHCR) ────────────────────
+  # ── 8. Publish Images to GitHub Container Registry (M5) ─────────────────────
   publish:
     name: Publish Images to GHCR
-    needs: [build-and-scan]
+    needs: [build-and-scan, test-docker-compose]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10

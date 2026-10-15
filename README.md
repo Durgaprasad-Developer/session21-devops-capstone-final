@@ -17,7 +17,7 @@
 ## Highlights
 
 - **Conflict-free appointment scheduling.** Validates doctor working hours and overlapping time slots; atomic database transactions prevent double-booking. The test suite exercises competing appointments and rejected invalid time ranges.
-- **Automated quality gates.** 16 passing Pytest unit tests (isolated in-memory SQLite test DB), Vite frontend production bundle, Docker multi-stage builds, and a Trivy container vulnerability gate (`--exit-code 1` on HIGH/CRITICAL) in GitHub Actions.
+- **Eight automated quality gates.** Pytest backend test suite (16 tests on SQLite), Vite frontend build check, Terraform HCL validation (offline `fmt`, `init -backend=false`, `validate`), Gitleaks secret scanning, Helm linting and template rendering, Docker Compose live smoke test, Trivy container vulnerability gate (`--exit-code 1` on HIGH/CRITICAL), and GHCR immutable SHA image publishing.
 - **Hardened non-root runtime.** Backend runs as unprivileged `appuser` (UID:GID 100:101); Frontend runs on `nginxinc/nginx-unprivileged:1.27-alpine` (UID 101). Root access is dropped across all application containers.
 - **Zero HIGH/CRITICAL CVEs.** Upstream vulnerabilities (including Starlette CVE-2025-62727) and outdated Alpine OS packages were remediated directly in code, ensuring clean vulnerability scans without security suppressions.
 - **Build once, deploy immutable bytes.** Each container image is built once in CI, scanned, tagged with the exact Git commit SHA, and published to GitHub Container Registry (GHCR). Deployments trace directly to the commit they originated from.
@@ -290,33 +290,36 @@ pytest -v
 
 ## CI/CD Pipeline & DevSecOps Gates
 
-The automated pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) triggers on every push to `main`:
+The automated pipeline in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) triggers on every push to `main` across eight automated gates:
 
 ```text
 git push main
    │
-   ▼
-1. test (Pytest 16/16 + Alembic on SQLite) ──► Fails build on test error
+   ├──► 1. test-backend (Pytest 16/16 + Alembic SQLite) ──► Fails build on test error
+   ├──► 2. build-frontend (Vite compilation) ──────────────► Catches static syntax/bundle bugs
+   ├──► 3. validate-terraform (fmt, init, validate) ────────► Enforces AWS HCL syntax ($0 cloud spend)
+   ├──► 4. scan-secrets (Gitleaks repository scan) ─────────► Blocks leaked credentials & API tokens
+   ├──► 5. lint-helm (helm lint & helm template) ───────────► Validates Kubernetes chart manifests
    │
-   ▼
-2. build-frontend (Vite compilation) ───────► Catches static syntax/bundle bugs
+   ▼ (requires all 5 upstream quality gates to pass)
+6. test-docker-compose (Live integration smoke test) ──────► Spins up stack, tests /health & /ready, downs -v
    │
-   ▼
-3. docker-build-scan (Backend & Frontend) ──► Builds non-root container images
+   ▼ (requires compose smoke test to pass)
+7. build-and-scan (Trivy scanner on non-root images) ───────► Enforces exit-code 1 on HIGH/CRITICAL
    │
-   ├──► Trivy Image Scan (backend)  ────────► Enforces exit-code: 1 on HIGH/CRITICAL
-   │
-   ├──► Trivy Image Scan (frontend) ────────► Enforces exit-code: 1 on HIGH/CRITICAL
-   │
-   ▼
-4. publish (Push to GHCR) ──────────────────► Tagged with exact Git commit SHA
+   ▼ (requires security scan to pass on main branch)
+8. publish (Push to GHCR) ──────────────────────────────────► Tags immutable Git commit SHA + latest
 ```
 
-- **Trivy Vulnerability Policy**: Strict gate with `exit-code: 1` and `severity: 'CRITICAL,HIGH'`.
+- **Gitleaks Secret Scanning**: Enforces zero credentials, private keys, or cloud tokens committed to git ([`docs/evidence/gitleaks_output.txt`](docs/evidence/gitleaks_output.txt)).
+- **Terraform IaC Gate**: Runs `fmt -check`, `init -backend=false`, and `validate` offline without requiring AWS credentials ([`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)).
+- **Helm Manifest Validation**: Runs `helm lint` and `helm template` dry-run renders before any container build ([`docs/evidence/helm_lint.txt`](docs/evidence/helm_lint.txt)).
+- **Docker Compose Smoke Gate**: Spins up live backend, frontend, and PostgreSQL services, waits for database readiness (`/ready`), checks application health (`/health`), and tears down with `-v` ([`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)).
+- **Trivy Vulnerability Policy**: Strict security gate with `exit-code: 1` and `severity: 'CRITICAL,HIGH'`.
 - **Remediated Vulnerabilities**: Patched Starlette CVE-2025-62727 by updating FastAPI; OS libraries updated via Alpine packages. Scans pass with **zero HIGH and zero CRITICAL findings**.
 - **Immutable SHA Tags**: Published images in GitHub Container Registry:
-  - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-backend:2be5d623eaea9c958783803ba3d8a8b89e7e0a79`
-  - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-frontend:2be5d623eaea9c958783803ba3d8a8b89e7e0a79`
+  - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-backend:<commit-sha>`
+  - `ghcr.io/durgaprasad-developer/session21-devops-capstone-final/bookease-frontend:<commit-sha>`
 
 ---
 
@@ -529,8 +532,8 @@ This matrix maps each module of the Capstone Rubric (`projectDescriptionandGradi
 | **M2** | Testing & Code Quality | 10 | **PASS (10/10)** | `backend/tests/` (16 unit tests, SQLite test DB)<br>`pytest -v` (16 passed in 1.13s) | [`docs/evidence/pytest_output.txt`](docs/evidence/pytest_output.txt)<br>[`docs/evidence/frontend_build.txt`](docs/evidence/frontend_build.txt) |
 | **M3** | Git & GitHub Hygiene | 5 | **PASS (5/5)** | Public repo, 12+ semantic commits, `.gitignore`<br>`git log --oneline` | [`docs/evidence/git_commit_history.txt`](docs/evidence/git_commit_history.txt) |
 | **M4** | Docker & Compose | 10 | **PASS (10/10)** | `backend/Dockerfile` (non-root `appuser`), `frontend/Dockerfile` (multi-stage, unprivileged Nginx)<br>`docker compose ps` | [`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)<br>[`docs/evidence/docker_compose_status.txt`](docs/evidence/docker_compose_status.txt) |
-| **M5** | CI/CD Pipeline | 15 | **PASS (15/15)** | `.github/workflows/ci.yml` (4-stage pipeline)<br>Triggers on push to `main`, pushes SHA-tagged images | [GitHub Actions Workflow](.github/workflows/ci.yml) |
-| **M6** | DevSecOps & Trivy | 5 | **PASS (5/5)** | `aquasecurity/trivy-action` in CI (`exit-code: 1`, `CRITICAL,HIGH`)<br>Zero High/Critical CVEs | Clean CI scan run |
+| **M5** | CI/CD Pipeline | 15 | **PASS (15/15)** | `.github/workflows/ci.yml` (8-stage pipeline: Pytest, Vite, Terraform, Gitleaks, Helm, Compose smoke test, Trivy, GHCR publish)<br>Triggers on push to `main`, pushes SHA-tagged images | [GitHub Actions Workflow](.github/workflows/ci.yml)<br>[`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt) |
+| **M6** | DevSecOps & Security | 5 | **PASS (5/5)** | `aquasecurity/trivy-action` (`exit-code: 1`, `CRITICAL,HIGH`) + Gitleaks secret scanning<br>Zero High/Critical CVEs, zero leaks | [`docs/evidence/gitleaks_output.txt`](docs/evidence/gitleaks_output.txt)<br>Clean CI scan gate |
 | **M7** | Terraform AWS IaC | 15 | **PARTIAL (5/15)** | `terraform/` (VPC, 4 subnets, NAT, EKS v1.34, Add-ons, Nodes)<br>`terraform validate` (Success; live apply deferred for $0 spend) | [`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)<br>`terraform/` HCL codebase |
 | **M8** | Kubernetes & Helm | 15 | **PASS (15/15)** | `helm/bookease/` (12 templates, HPA v2 2→5 replicas, Ingress)<br>`kubectl get pods,svc,hpa -n bookease` | [`docs/evidence/k8s_bookease_status.txt`](docs/evidence/k8s_bookease_status.txt)<br>[`docs/screenshots/ingress_application.png`](docs/screenshots/ingress_application.png) |
 | **M9** | Observability | 10 | **PASS (10/10)** | FastAPI `/metrics`, Prometheus server (UP), Grafana dashboard (6 live panels)<br>`curl http://192.168.49.2:32090/api/v1/targets` | [`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png)<br>[`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png) |
