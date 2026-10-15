@@ -183,12 +183,15 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 | [`docs/screenshots/ingress_application.png`](screenshots/ingress_application.png) | Live browser screenshot of application served via Minikube Ingress | M8 |
 | [`docs/screenshots/prometheus_targets_up.png`](screenshots/prometheus_targets_up.png) | Prometheus Targets UI showing `bookease-backend` State: `UP` | M9 |
 | [`docs/screenshots/grafana_bookease_dashboard.png`](screenshots/grafana_bookease_dashboard.png) | Populated Grafana Dashboard with live HTTP request & latency metrics | M9 |
-| [`docs/metrics_output.txt`](metrics_output.txt) | Raw Prometheus `/metrics` scrape output from FastAPI backend | M9 |
-| [`docs/pytest_output.txt`](pytest_output.txt) | Raw terminal output of all 16 passing Pytest unit tests | M2 |
-| [`docs/git_commit_history.txt`](git_commit_history.txt) | Log of all semantic Git commits | M3 |
-| [`docs/docker_compose_status.txt`](docker_compose_status.txt) | Status of 3 healthy Docker Compose containers | M4 |
-| [`docs/k8s_bookease_status.txt`](k8s_bookease_status.txt) | Pods, Services, Ingress, and HPA status in `bookease` | M8 |
-| [`docs/helm_list.txt`](helm_list.txt) | Deployed Helm release record | M8 |
+| [`docs/evidence/metrics_output.txt`](evidence/metrics_output.txt) | Raw Prometheus `/metrics` scrape output from FastAPI backend | M9 |
+| [`docs/evidence/pytest_output.txt`](evidence/pytest_output.txt) | Raw terminal output of all 16 passing Pytest unit tests | M2 |
+| [`docs/evidence/frontend_build.txt`](evidence/frontend_build.txt) | Output of Vite frontend production compilation | M2, M5 |
+| [`docs/evidence/terraform_validate.txt`](evidence/terraform_validate.txt) | Output of `terraform fmt -check`, `init`, and `validate` | M7 |
+| [`docs/evidence/helm_lint.txt`](evidence/helm_lint.txt) | Output of `helm lint ./helm/bookease` | M8 |
+| [`docs/evidence/git_commit_history.txt`](evidence/git_commit_history.txt) | Log of all semantic Git commits | M3 |
+| [`docs/evidence/docker_compose.txt`](evidence/docker_compose.txt) | Output of Docker Compose configuration validation | M4 |
+| [`docs/evidence/k8s_bookease_status.txt`](evidence/k8s_bookease_status.txt) | Pods, Services, Ingress, and HPA status in `bookease` | M8 |
+| [`docs/evidence/helm_list.txt`](evidence/helm_list.txt) | Deployed Helm release record | M8 |
 
 ---
 

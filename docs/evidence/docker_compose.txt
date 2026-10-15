@@ -1,0 +1,107 @@
+name: session21-devops-capstone-final
+services:
+  backend:
+    build:
+      context: /home/durga-prasad/session21-devops-capstone-final/backend
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: "536870912"
+        reservations:
+          cpus: 0.1
+          memory: "134217728"
+    environment:
+      AUTO_MIGRATE: "true"
+      DATABASE_URL: postgresql+psycopg://bookease:bookease@db:5432/bookease
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"
+      timeout: 5s
+      interval: 15s
+      retries: 5
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8000"
+        protocol: tcp
+    restart: unless-stopped
+  db:
+    deploy:
+      resources:
+        limits:
+          cpus: 1
+          memory: "536870912"
+        reservations:
+          cpus: 0.1
+          memory: "134217728"
+    environment:
+      POSTGRES_DB: bookease
+      POSTGRES_PASSWORD: bookease
+      POSTGRES_USER: bookease
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U bookease -d bookease
+      timeout: 5s
+      interval: 10s
+      retries: 5
+    image: postgres:16-alpine
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: postgres_data
+        target: /var/lib/postgresql/data
+        volume: {}
+  frontend:
+    build:
+      context: /home/durga-prasad/session21-devops-capstone-final/frontend
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+        required: true
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: "268435456"
+        reservations:
+          cpus: 0.05
+          memory: "67108864"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O - http://127.0.0.1:80/ || exit 1
+      timeout: 5s
+      interval: 15s
+      retries: 3
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 80
+        published: "3000"
+        protocol: tcp
+    restart: unless-stopped
+networks:
+  default:
+    name: session21-devops-capstone-final_default
+volumes:
+  postgres_data:
+    name: session21-devops-capstone-final_postgres_data

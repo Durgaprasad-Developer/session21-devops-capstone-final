@@ -1,0 +1,13 @@
+
+> bookease-frontend@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 36 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.82 kB │ gzip:  0.44 kB
+dist/assets/index-mnbKn8--.css   10.19 kB │ gzip:  2.63 kB
+dist/assets/index-sa-p-nbX.js   165.17 kB │ gzip: 50.61 kB
+✓ built in 752ms

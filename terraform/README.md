@@ -26,8 +26,10 @@ AWS Cloud (ap-south-1 — Mumbai)
 - **Egress Architecture**: Internet Gateway for public traffic and a single cost-optimized NAT Gateway for private node egress.
 - **Amazon EKS Cluster**: Kubernetes v1.34 control plane (AWS Standard Support) with private and public API endpoint access.
 - **Managed Node Group**: 2x `t3.medium` instances (scaling 1–4) running Amazon Linux 2 / Bottlerocket with 20 GiB gp3 root volumes.
+- **EKS Add-ons**: `vpc-cni`, `coredns`, and `kube-proxy` managed declaratively as first-class Terraform resources.
 - **IAM Roles & Policies**: Dedicated least-privilege IAM roles for EKS Control Plane (`AmazonEKSClusterPolicy`, `AmazonEKSVPCResourceController`) and Worker Nodes (`AmazonEKSWorkerNodePolicy`, `AmazonEKS_CNI_Policy`, `AmazonEC2ContainerRegistryReadOnly`).
 - **Security Groups**: Granular control plane and node communication rules.
+- **Validation Boundary**: Offline validation (`terraform fmt`, `terraform init -backend=false`, `terraform validate`) passes 100% locally. Live cloud provisioning is deliberately held at $0.00 to avoid unapproved student expenses.
 
 ---
 
