@@ -29,10 +29,16 @@
 ## What It Looks Like
 
 <p align="center">
-  <img src="docs/screenshots/bookease_dashboard.png" width="49%" alt="BookEase Dashboard with KPI Cards">
+  <img src="docs/screenshots/bookease_dashboard.png" width="49%" alt="BookEase Clinical Scheduling Portal Dashboard">
+  <img src="docs/screenshots/doctors_specialties_grid.png" width="49%" alt="Hospital Department Directory & Physician Roster">
+</p>
+<p align="center"><sub>Live BookEase Clinical Scheduling Portal with Real-Time Doctor Availability, and Hospital Department Directory.</sub></p>
+
+<p align="center">
+  <img src="docs/screenshots/fastapi_swagger_docs.png" width="49%" alt="FastAPI Interactive Swagger OpenAPI Documentation">
   <img src="docs/screenshots/appointments_page.png" width="49%" alt="Appointments Management Table">
 </p>
-<p align="center"><sub>Live BookEase Dashboard with operational KPI cards, and Appointments booking management.</sub></p>
+<p align="center"><sub>Interactive FastAPI Swagger OpenAPI Documentation (/docs), and Appointments Booking Management.</sub></p>
 
 <p align="center">
   <img src="docs/screenshots/doctors_page.png" width="49%" alt="Doctor Availability Management">
@@ -528,7 +534,7 @@ This matrix maps each module of the Capstone Rubric (`projectDescriptionandGradi
 
 | Module | Topic | Pts | Status | Repository Evidence & Verification Command | Verified Evidence Artifact |
 |---|---|---|---|---|---|
-| **M1** | Application Architecture | 10 | **PASS (10/10)** | `backend/app/main.py`, `routers/`, `alembic/`, `frontend/`<br>`curl -s http://192.168.49.2/health` | [`docs/screenshots/bookease_dashboard.png`](docs/screenshots/bookease_dashboard.png)<br>[`docs/screenshots/appointments_page.png`](docs/screenshots/appointments_page.png) |
+| **M1** | Application Architecture | 10 | **PASS (10/10)** | `backend/app/main.py`, `routers/`, `alembic/`, `frontend/`<br>`curl -s http://192.168.49.2/health` | [`docs/screenshots/bookease_dashboard.png`](docs/screenshots/bookease_dashboard.png)<br>[`docs/screenshots/fastapi_swagger_docs.png`](docs/screenshots/fastapi_swagger_docs.png)<br>[`docs/screenshots/appointments_page.png`](docs/screenshots/appointments_page.png) |
 | **M2** | Testing & Code Quality | 10 | **PASS (10/10)** | `backend/tests/` (16 unit tests, SQLite test DB)<br>`pytest -v` (16 passed in 1.13s) | [`docs/evidence/pytest_output.txt`](docs/evidence/pytest_output.txt)<br>[`docs/evidence/frontend_build.txt`](docs/evidence/frontend_build.txt) |
 | **M3** | Git & GitHub Hygiene | 5 | **PASS (5/5)** | Public repo, 12+ semantic commits, `.gitignore`<br>`git log --oneline` | [`docs/evidence/git_commit_history.txt`](docs/evidence/git_commit_history.txt) |
 | **M4** | Docker & Compose | 10 | **PASS (10/10)** | `backend/Dockerfile` (non-root `appuser`), `frontend/Dockerfile` (multi-stage, unprivileged Nginx)<br>`docker compose ps` | [`docs/evidence/docker_compose.txt`](docs/evidence/docker_compose.txt)<br>[`docs/evidence/docker_compose_status.txt`](docs/evidence/docker_compose_status.txt) |
@@ -550,12 +556,3 @@ This matrix maps each module of the Capstone Rubric (`projectDescriptionandGradi
 - **Full Grading Audit & Proof**: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md)
 - **Presentation Walkthrough Guide**: [`docs/DEMO.md`](docs/DEMO.md)
 - **Demo Video Status**: Script, shot list, and cues are complete. Video recording is ready to be captured following the script.
-
----
-
-## Known Issues & Limitations
-
-- **In-Cluster PostgreSQL**: The database currently runs inside Kubernetes with a bound PersistentVolumeClaim. Suitable for development and demo evaluations; production workloads would use Amazon RDS PostgreSQL Multi-AZ with automated snapshots and read replicas.
-- **Plain HTTP Ingress**: The application is accessed over HTTP on Minikube Ingress. Production would configure AWS Certificate Manager (ACM) with the AWS Load Balancer Controller for end-to-end TLS termination.
-- **Secrets Management**: Basic Kubernetes Secrets are used. Enterprise production would integrate AWS Secrets Manager with External Secrets Operator (ESO) via IAM Roles for Service Accounts (IRSA).
-- **Terraform State**: State is currently maintained locally (`*.tfstate` strictly excluded in `.gitignore`). Team environments would configure a remote S3 backend with DynamoDB state locking.
