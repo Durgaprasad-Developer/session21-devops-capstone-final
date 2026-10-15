@@ -1,3 +1,5 @@
+1985c93 feat(ci): add terraform validation, gitleaks secret scan, helm lint, and compose smoke test
+10ad3a0 docs: align root README with SeatLock standard, add highlights, paired screenshots, and organized evidence
 2959adc feat(aws): complete EKS integration, add-ons, presentation deck, video script, and rubric matrix
 f3387ca docs(aws): align EKS to Standard Support v1.34 and document IaC validation vs deployment
 44f9ecc fix(terraform): refine version constraint to >= 1.5.0, < 2.0.0 and document supported EKS versions
@@ -11,5 +13,3 @@ f1a786f feat(helm): Phase 6 — production-style Helm chart with multi-replica D
 4116b19 fix(security): remediate starlette CVE-2025-62727 and update FastAPI & Prometheus instrumentator
 0ccdd90 feat(ci): add automated tests, image builds, Trivy scans and GHCR publishing
 953f0de feat(docker): Phase 2B — harden Docker Compose stack with non-root runtime, healthchecks, and migration controls
-dc094f0 chore: exclude SQLite test db and update gitignore
-b0e016a feat: Phase 1 — BookEase Appointment Booking System
