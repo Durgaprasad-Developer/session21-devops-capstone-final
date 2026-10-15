@@ -33,6 +33,11 @@ output "cluster_name" {
   value       = aws_eks_cluster.main.name
 }
 
+output "cluster_version" {
+  description = "Kubernetes control plane version of the EKS cluster"
+  value       = aws_eks_cluster.main.version
+}
+
 output "cluster_endpoint" {
   description = "Endpoint URL for the Amazon EKS control plane API"
   value       = aws_eks_cluster.main.endpoint

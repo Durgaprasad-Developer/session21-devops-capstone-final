@@ -2,6 +2,12 @@
 
 This presentation guide provides a structured, step-by-step walkthrough of the BookEase Appointment Management System and its complete DevOps engineering stack for examiners and peer evaluators.
 
+### Presentation & Video Deliverables
+- **PowerPoint Presentation Deck**: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](presentation/BookEase_DevOps_Capstone_Presentation.pptx) (or [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](../demo/BookEase_DevOps_Capstone_Presentation.pptx))
+- **Slide-by-Slide Transcript & Speaker Notes**: [`docs/PRESENTATION.md`](PRESENTATION.md)
+- **Video Demonstration Script & Shot List**: [`docs/DEMO_VIDEO_SCRIPT.md`](DEMO_VIDEO_SCRIPT.md)
+- **Grading Rubric Compliance Audit**: [`docs/FINAL_AUDIT.md`](FINAL_AUDIT.md)
+
 ---
 
 ## 1. Project Overview & Architecture (1 Minute)

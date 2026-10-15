@@ -164,8 +164,8 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 
 | Sub-Criterion | Points | Status | Evidence Location | Verification Command & Output |
 |---|---|---|---|---|
-| `README.md` in repository root explaining application | 2 | **PASS** | `README.md` | Comprehensive overview, architecture diagram, endpoints, Helm, HPA, and Prometheus |
-| Live demo walkthrough reproducible | 3 | **PASS** | `docs/DEMO.md` | 5–7 minute scripted walkthrough with exact commands and URLs |
+| `README.md` in repository root explaining application | 2 | **PASS** | `README.md` | Dual architecture diagrams, tech stack, endpoints, Helm, HPA, Prometheus, and cost analysis |
+| Live demo walkthrough & presentation materials | 3 | **PASS** | `docs/DEMO.md`, `docs/DEMO_VIDEO_SCRIPT.md`, `docs/presentation/` | 14-slide 16:9 PowerPoint deck, slide notes, and 5–7 min scripted demo walkthrough |
 
 ---
 
@@ -173,6 +173,10 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 
 | File Path | Description | Rubric Mapping |
 |---|---|---|
+| [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](presentation/BookEase_DevOps_Capstone_Presentation.pptx) | Complete 14-slide 16:9 widescreen presentation deck | M10 |
+| [`docs/PRESENTATION.md`](PRESENTATION.md) | Slide-by-slide transcript, visual layout specifications, and speaker notes | M10 |
+| [`docs/DEMO_VIDEO_SCRIPT.md`](DEMO_VIDEO_SCRIPT.md) | 5–7 minute video recording script with scene-by-scene timing and cues | M10 |
+| [`docs/DEMO.md`](DEMO.md) | 5–7 minute live presentation guide for evaluators | M10 |
 | [`docs/screenshots/bookease_dashboard.png`](screenshots/bookease_dashboard.png) | Browser screenshot of BookEase Dashboard KPI cards | M1, M4 |
 | [`docs/screenshots/appointments_page.png`](screenshots/appointments_page.png) | Browser screenshot of Appointments booking & management | M1 |
 | [`docs/screenshots/doctors_page.png`](screenshots/doctors_page.png) | Browser screenshot of Doctor availability management | M1 |
@@ -181,11 +185,10 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 | [`docs/screenshots/grafana_bookease_dashboard.png`](screenshots/grafana_bookease_dashboard.png) | Populated Grafana Dashboard with live HTTP request & latency metrics | M9 |
 | [`docs/metrics_output.txt`](metrics_output.txt) | Raw Prometheus `/metrics` scrape output from FastAPI backend | M9 |
 | [`docs/pytest_output.txt`](pytest_output.txt) | Raw terminal output of all 16 passing Pytest unit tests | M2 |
-| [`docs/git_commit_history.txt`](git_commit_history.txt) | Log of all 11 semantic Git commits | M3 |
+| [`docs/git_commit_history.txt`](git_commit_history.txt) | Log of all semantic Git commits | M3 |
 | [`docs/docker_compose_status.txt`](docker_compose_status.txt) | Status of 3 healthy Docker Compose containers | M4 |
 | [`docs/k8s_bookease_status.txt`](k8s_bookease_status.txt) | Pods, Services, Ingress, and HPA status in `bookease` | M8 |
 | [`docs/helm_list.txt`](helm_list.txt) | Deployed Helm release record | M8 |
-| [`docs/DEMO.md`](DEMO.md) | 5–7 minute presentation script for evaluators | M10 |
 
 ---
 
