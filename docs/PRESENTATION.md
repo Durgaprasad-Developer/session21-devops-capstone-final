@@ -1,6 +1,7 @@
 # BookEase — DevOps Capstone Presentation Slides & Speaker Notes
 
 This document provides the full slide-by-slide transcript, visual layout specifications, and speaker notes corresponding to the generated presentation:
+- **Google Slides Presentation**: [Open in Google Slides](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
 - Editable PowerPoint deck: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](file:///home/durga-prasad/session21-devops-capstone-final/docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)
 - Alternate copy: [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](file:///home/durga-prasad/session21-devops-capstone-final/demo/BookEase_DevOps_Capstone_Presentation.pptx)
 

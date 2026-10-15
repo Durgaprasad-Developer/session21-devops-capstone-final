@@ -515,13 +515,14 @@ This matrix maps each module of the Capstone Rubric (`projectDescriptionandGradi
 | **M7** | Terraform AWS IaC | 15 | **Partial** | `terraform/` (VPC, 4 subnets, NAT, EKS v1.34, Add-ons, Node Group)<br>`terraform validate` (Success; live cloud apply deferred for $0 spend) | [`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)<br>[`terraform/README.md`](terraform/README.md) |
 | **M8** | Kubernetes & Helm | 15 | **Verified** | `helm/bookease/` (12 templates, HPA v2 2→5 replicas, Ingress)<br>`kubectl get pods,svc,hpa -n bookease` (on local Minikube K8s v1.30) | [`docs/evidence/k8s_bookease_status.txt`](docs/evidence/k8s_bookease_status.txt)<br>[`docs/screenshots/ingress_application.png`](docs/screenshots/ingress_application.png) |
 | **M9** | Observability | 10 | **Verified** | FastAPI `/metrics`, Prometheus server (UP), Grafana dashboard (6 live panels)<br>`curl http://192.168.49.2:32090/api/v1/targets` | [`docs/evidence/metrics_output.txt`](docs/evidence/metrics_output.txt)<br>[`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png)<br>[`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png) |
-| **M10**| Presentation & Docs | 5 | **Partial** | Complete presentation deck (`.pptx`), speaker notes, and video recording script.<br>*Note: Slide deck & script completed; video recording pending.* | [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)<br>[`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md) |
+| **M10**| Presentation & Docs | 5 | **Partial** | Complete presentation deck, speaker notes, and video recording script.<br>*Note: Slide deck & script completed; video recording pending.* | [Google Slides Presentation](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)<br>[`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)<br>[`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md) |
 | **Total** | | **100** | | Full grading verification audit | Detailed Review: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md) |
 
 ---
 
 ## Final Submission Deliverables & Links
 
+- **Capstone Presentation (Google Slides)**: [Open Presentation in Google Slides](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
 - **PowerPoint Presentation Deck (.pptx)**: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx) (and mirror in [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](demo/BookEase_DevOps_Capstone_Presentation.pptx))
 - **Slide-by-Slide Transcript & Speaker Notes**: [`docs/PRESENTATION.md`](docs/PRESENTATION.md)
 - **Demo Video Script & Shot List (5–7 min)**: [`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md)
