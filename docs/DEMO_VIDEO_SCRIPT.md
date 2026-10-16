@@ -2,6 +2,9 @@
 
 This document provides the exact scene-by-scene production script, terminal commands, visual cues, and voiceover guidelines for recording the **BookEase DevOps Capstone Demo Video**.
 
+> [!TIP]
+> 📺 **Recorded Video Demonstration**: [Watch on YouTube (5–7 mins)](https://www.youtube.com/watch?v=LMPvzXk0P0M)
+
 > [!IMPORTANT]
 > **Video Ground Rules**:
 > - **Total Length**: 5 to 7 minutes.
@@ -184,6 +187,7 @@ This document provides the exact scene-by-scene production script, terminal comm
 2. **Audio Check**:
    - Speak clearly at a moderate pace (130–145 words per minute).
    - Use a USB headset or external microphone with noise suppression enabled.
-3. **Export Settings**:
+3. **Export Settings & Delivery**:
    - Format: MP4 (H.264 video codec, AAC audio).
-   - Save the final video file as `demo/bookease_demo_video.mp4` or upload to YouTube (unlisted) and provide the link in `README.md` and `docs/DEMO.md`.
+   - Published YouTube Video: [https://www.youtube.com/watch?v=LMPvzXk0P0M](https://www.youtube.com/watch?v=LMPvzXk0P0M)
+   - Local/Offline Reference: `demo/bookease_demo_video.mp4` (or referenced in `README.md` and `docs/DEMO.md`).

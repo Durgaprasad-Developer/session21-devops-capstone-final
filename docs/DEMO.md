@@ -3,6 +3,7 @@
 This presentation guide provides a structured, step-by-step walkthrough of the BookEase Appointment Management System and its complete DevOps engineering stack for examiners and peer evaluators.
 
 ### Presentation & Video Deliverables
+- **Video Walkthrough & Explanation (YouTube)**: [Watch Demo Video on YouTube (5–7 mins)](https://www.youtube.com/watch?v=LMPvzXk0P0M)
 - **Google Slides Presentation**: [Open in Google Slides](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
 - **PowerPoint Presentation Deck**: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](presentation/BookEase_DevOps_Capstone_Presentation.pptx) (or [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](../demo/BookEase_DevOps_Capstone_Presentation.pptx))
 - **Slide-by-Slide Transcript & Speaker Notes**: [`docs/PRESENTATION.md`](PRESENTATION.md)

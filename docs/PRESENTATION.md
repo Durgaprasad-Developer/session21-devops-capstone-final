@@ -1,6 +1,7 @@
 # BookEase — DevOps Capstone Presentation Slides & Speaker Notes
 
 This document provides the full slide-by-slide transcript, visual layout specifications, and speaker notes corresponding to the generated presentation:
+- **Video Walkthrough & Explanation (YouTube)**: [Watch Demo Video on YouTube (5–7 mins)](https://www.youtube.com/watch?v=LMPvzXk0P0M)
 - **Google Slides Presentation**: [Open in Google Slides](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
 - Editable PowerPoint deck: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](file:///home/durga-prasad/session21-devops-capstone-final/docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)
 - Alternate copy: [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](file:///home/durga-prasad/session21-devops-capstone-final/demo/BookEase_DevOps_Capstone_Presentation.pptx)
@@ -13,6 +14,7 @@ This document provides the full slide-by-slide transcript, visual layout specifi
 **Title**: **BookEase: Scalable Appointment Booking Platform**  
 **Subtitle**: End-to-End Cloud DevOps: From Containerization & CI/CD to Kubernetes, HPA, Prometheus & AWS Terraform IaC  
 **Candidate**: Durga Prasad  
+**Demo Video**: [YouTube Walkthrough](https://www.youtube.com/watch?v=LMPvzXk0P0M)  
 **Repository**: [github.com/Durgaprasad-Developer/session21-devops-capstone-final](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final)  
 **Evaluated Score**: 90/100 (Full Local & IaC Proof)
 

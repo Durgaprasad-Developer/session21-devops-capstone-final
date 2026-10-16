@@ -165,7 +165,7 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 | Sub-Criterion | Points | Status | Evidence Location | Verification Command & Output |
 |---|---|---|---|---|
 | `README.md` in repository root explaining application | 2 | **PASS** | `README.md` | Dual architecture diagrams, tech stack, endpoints, Helm, HPA, Prometheus, and cost analysis |
-| Live demo walkthrough & presentation materials | 3 | **PASS** | `docs/DEMO.md`, `docs/DEMO_VIDEO_SCRIPT.md`, `docs/presentation/` | 14-slide 16:9 PowerPoint deck, slide notes, and 5–7 min scripted demo walkthrough |
+| Live demo walkthrough & presentation materials | 3 | **PASS** | `docs/DEMO.md`, `docs/DEMO_VIDEO_SCRIPT.md`, `docs/presentation/` | [YouTube Demo Video](https://www.youtube.com/watch?v=LMPvzXk0P0M), 14-slide 16:9 PowerPoint deck, slide notes, and 5–7 min scripted demo walkthrough |
 
 ---
 
@@ -173,6 +173,7 @@ This document is the official, evidence-grounded audit of the **BookEase Appoint
 
 | File Path | Description | Rubric Mapping |
 |---|---|---|
+| [YouTube Demo Video](https://www.youtube.com/watch?v=LMPvzXk0P0M) | 5–7 minute video explanation & walkthrough of the BookEase DevOps project | M10 |
 | [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](presentation/BookEase_DevOps_Capstone_Presentation.pptx) | Complete 14-slide 16:9 widescreen presentation deck | M10 |
 | [`docs/PRESENTATION.md`](PRESENTATION.md) | Slide-by-slide transcript, visual layout specifications, and speaker notes | M10 |
 | [`docs/DEMO_VIDEO_SCRIPT.md`](DEMO_VIDEO_SCRIPT.md) | 5–7 minute video recording script with scene-by-scene timing and cues | M10 |

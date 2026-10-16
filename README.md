@@ -4,12 +4,28 @@
 **An outpatient medical scheduling platform demonstrating a complete DevOps lifecycle:** automated backend unit tests (Pytest on isolated SQLite), multi-stage non-root containers, automated DevSecOps pipeline gates in GitHub Actions, immutable SHA-tagged images published to GitHub Container Registry (GHCR), local Kubernetes orchestration via Helm with Horizontal Pod Autoscaling (HPA v2), Prometheus and Grafana observability, and validated AWS Terraform Infrastructure as Code (targeting EKS v1.34 Standard Support).
 
 [![CI/CD Pipeline](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml/badge.svg)](https://github.com/Durgaprasad-Developer/session21-devops-capstone-final/actions/workflows/ci.yml)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-YouTube-red?logo=youtube)](https://www.youtube.com/watch?v=LMPvzXk0P0M)
+[![Google Slides](https://img.shields.io/badge/Presentation-Google%20Slides-gold?logo=googleslides)](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
 [![Docker](https://img.shields.io/badge/Containers-Non--Root%20Alpine-blue)](docker-compose.yml)
 [![Kubernetes](https://img.shields.io/badge/K8s-Helm%20%2B%20HPA%20v2-326CE5)](helm/bookease/)
 [![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus%20%2B%20Grafana-orange)](monitoring/)
 [![Terraform](https://img.shields.io/badge/IaC-Terraform%20AWS%20EKS%201.34-purple)](terraform/)
 
+> [!TIP]
+> 📺 **Video Explanation & Project Walkthrough**: [Watch on YouTube (5–7 mins)](https://www.youtube.com/watch?v=LMPvzXk0P0M) | 📊 **Presentation Slides**: [Google Slides Deck](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
+
 ![BookEase running behind Kubernetes Nginx Ingress](docs/screenshots/ingress_application.png)
+
+---
+
+## Video Explanation of the Project
+
+**YouTube Video Walkthrough Link:**  
+**https://www.youtube.com/watch?v=LMPvzXk0P0M**
+
+[![Watch Video Explanation](https://img.shields.io/badge/YouTube-Watch%20Video%20Explanation-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=LMPvzXk0P0M)
+
+A complete 5–7 minute video walkthrough explaining the BookEase platform, architecture, automated CI/CD pipeline, DevSecOps scanning, Kubernetes Helm deployment, HPA autoscaling, Prometheus/Grafana monitoring, and AWS Terraform EKS IaC.
 
 ---
 
@@ -515,15 +531,17 @@ This matrix maps each module of the Capstone Rubric (`projectDescriptionandGradi
 | **M7** | Terraform AWS IaC | 15 | **Verified** | `terraform/` (VPC, 4 subnets, NAT, EKS v1.34, Add-ons, Node Group)<br>`terraform validate` (100% offline syntax & provider verified) | [`docs/evidence/terraform_validate.txt`](docs/evidence/terraform_validate.txt)<br>[`terraform/README.md`](terraform/README.md) |
 | **M8** | Kubernetes & Helm | 15 | **Verified** | `helm/bookease/` (12 templates, HPA v2 2→5 replicas, Ingress)<br>`kubectl get pods,svc,hpa -n bookease` (on local Minikube K8s v1.30) | [`docs/evidence/k8s_bookease_status.txt`](docs/evidence/k8s_bookease_status.txt)<br>[`docs/screenshots/ingress_application.png`](docs/screenshots/ingress_application.png) |
 | **M9** | Observability | 10 | **Verified** | FastAPI `/metrics`, Prometheus server (UP), Grafana dashboard (6 live panels)<br>`curl http://192.168.49.2:32090/api/v1/targets` | [`docs/evidence/metrics_output.txt`](docs/evidence/metrics_output.txt)<br>[`docs/screenshots/prometheus_targets_up.png`](docs/screenshots/prometheus_targets_up.png)<br>[`docs/screenshots/grafana_bookease_dashboard.png`](docs/screenshots/grafana_bookease_dashboard.png) |
-| **M10**| Presentation & Docs | 5 | **Verified** | Complete presentation slide deck (.pptx & Google Slides) and walkthrough guide | [Google Slides Presentation](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)<br>[`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)<br>[`docs/DEMO.md`](docs/DEMO.md) |
+| **M10**| Presentation & Docs | 5 | **Verified** | Complete presentation slide deck (.pptx & Google Slides), video walkthrough, and demo guide | [YouTube Demo Video](https://www.youtube.com/watch?v=LMPvzXk0P0M)<br>[Google Slides Presentation](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)<br>[`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx)<br>[`docs/DEMO.md`](docs/DEMO.md) |
 | **Total** | | **100** | | Full grading verification audit | Detailed Review: [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md) |
 
 ---
 
 ## Final Submission Deliverables & Links
 
+- **Video Explanation of the Project (YouTube)**: https://www.youtube.com/watch?v=LMPvzXk0P0M ([Watch Demo Video](https://www.youtube.com/watch?v=LMPvzXk0P0M))
 - **Capstone Presentation (Google Slides)**: [Open Presentation in Google Slides](https://docs.google.com/presentation/d/1hvEM9wmknlUbedzcnXgSMwg9Riph9KxaNyO3QIsm7Q4/edit?usp=sharing)
 - **PowerPoint Presentation Deck (.pptx)**: [`docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx`](docs/presentation/BookEase_DevOps_Capstone_Presentation.pptx) (and mirror in [`demo/BookEase_DevOps_Capstone_Presentation.pptx`](demo/BookEase_DevOps_Capstone_Presentation.pptx))
+- **Video Demonstration Script & Shot List**: [`docs/DEMO_VIDEO_SCRIPT.md`](docs/DEMO_VIDEO_SCRIPT.md)
 - **Presentation Walkthrough Guide**: [`docs/DEMO.md`](docs/DEMO.md)
 - **REST API Specification**: [`docs/API.md`](docs/API.md)
 - **Extended Deployment & Teardown Guide**: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)

@@ -70,6 +70,6 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-.terraformrc
-terraform.rc
+# Video presentation and recording artifacts
+video/
 
